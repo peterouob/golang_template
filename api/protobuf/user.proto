@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+option go_package = "../protobuf";
+
+message EchoRequest {
+  string name = 1;
+}
+
+message EchoResponse {
+  string name = 1;
+}
+
+message RegisterUserRequest {
+  int64  Id = 1;
+  string Email = 2;
+  string Name = 3;
+  string Password = 4;
+}
+
+message RegisterUserResponse {
+  int64  Id = 1;
+}
+
+message LoginUserRequest {
+  string Email = 1;
+  string Password = 2;
+}
+
+message LoginUserResponse {
+  string Name = 1;
+}
+
+service Echo {
+  rpc Echo(EchoRequest) returns (EchoResponse);
+}
+
+service User {
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
+  rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
+}
