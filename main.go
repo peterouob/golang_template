@@ -1,7 +1,13 @@
 package main
 
-import "github.com/peterouob/golang_template/pkg"
+import (
+	"github.com/peterouob/golang_template/server"
+	"github.com/peterouob/golang_template/tools"
+)
 
 func main() {
-	pkg.Init()
+	tools.InitLogger()
+
+	server.InitGrpcServer()
+
 }
