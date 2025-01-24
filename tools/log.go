@@ -45,12 +45,15 @@ func Log(msg string) {
 	logg.Info(msg)
 }
 
-func HandelError(msg string, err error) {
+func HandelError(msg string, err error, f ...func(args ...interface{})) {
 	if logg == nil {
 		panic("logger is not initialized")
 	}
 	if err != nil {
+		if len(f) > 0 && f[0] != nil {
+			f[0]()
+		}
 		logg.Error(msg, zap.Error(err))
-		return
+		os.Exit(1)
 	}
 }
