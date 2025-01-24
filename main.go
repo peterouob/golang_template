@@ -10,8 +10,12 @@ var (
 	servicePort = flag.Int("port", 8080, "grpc service port")
 )
 
+func init() {
+	tools.InitLogger()
+}
+
 func main() {
 	flag.Parse()
-	tools.InitLogger()
+
 	server.InitGrpcServer(*servicePort)
 }

@@ -1,4 +1,4 @@
-package server
+package etcdservice
 
 import (
 	"context"
@@ -48,11 +48,11 @@ func (s *EtcdService) Register(service string, endpoint string, leaseID clientv3
 			service,
 			endpoint)
 
-		_, err = s.client.Put(ctx, key, endpoint)
+		_, err = s.client.Put(ctx, key, "", clientv3.WithLease(leaseID))
 		tools.HandelError(fmt.Sprintf("puth in %s node %s on etcd error", service, endpoint), err)
 		return lease.ID
 	} else {
-		_, err := s.client.KeepAlive(ctx, leaseID)
+		_, err := s.client.KeepAliveOnce(ctx, leaseID)
 		if errors.Is(err, rpctypes.ErrLeaseNotFound) {
 			return s.Register(service, endpoint, leaseID)
 		} else {
@@ -61,4 +61,16 @@ func (s *EtcdService) Register(service string, endpoint string, leaseID clientv3
 
 		return leaseID
 	}
+}
+
+func (s *EtcdService) UnRegister(service string, endpoint string) {
+	ctx := context.Background()
+	key := fmt.Sprintf("%s/%s/%s",
+		strings.TrimRight("/service/grpc", "/"),
+		service,
+		endpoint)
+
+	_, err := s.client.Delete(ctx, key)
+	tools.HandelError("delete etcd node error", err)
+	tools.Log(fmt.Sprintf("unregister %s node %s on etcd error", service, endpoint))
 }
