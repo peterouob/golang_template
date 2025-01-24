@@ -31,23 +31,26 @@ func getLogFile() *os.File {
 		panic(fmt.Sprintf("failed to create log directory: %v", err))
 	}
 
-	file, err := os.OpenFile(logFileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	file, err := os.OpenFile(logFileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		panic(fmt.Sprintf("failed to open log file: %v", err))
 	}
 	return file
 }
 
-func LogMessage(msg string) {
+func Log(msg string) {
 	if logg == nil {
 		panic("logger is not initialized")
 	}
 	logg.Info(msg)
 }
 
-func LogError(msg string, err error) {
+func HandelError(msg string, err error) {
 	if logg == nil {
 		panic("logger is not initialized")
 	}
-	logg.Error(msg, zap.Error(err))
+	if err != nil {
+		logg.Error(msg, zap.Error(err))
+		return
+	}
 }
