@@ -2,7 +2,7 @@
 
 ### Use Todo List to show full fundamental template
 
-- [ ] Logger
+- [x] Logger
 - [ ] mq 
 - [ ] gin router
   - [ ] gin cache
