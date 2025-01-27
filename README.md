@@ -18,7 +18,7 @@
   - [ ] 攔截器
   - [ ] gateway
   - [ ] pool
-- [ ] etcd
+- [x] etcd
 - [ ] prometheus
   - [ ] Grafana
 - [ ] Jagger

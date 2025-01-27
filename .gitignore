@@ -9,3 +9,5 @@ gen
 
 *.log
 /default.etcd/
+
+*.db
