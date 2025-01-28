@@ -13,6 +13,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      etcd:
+        image: quay.io/coreos/etcd:v3.5.9
+        ports:
+          - 2379:2379
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -25,8 +30,11 @@ jobs:
       - name: Build
         run: go build -o main
 
+      - name: Check etcd status
+        run: etcdctl --endpoints=http://localhost:2379 endpoint status
+
       - name: Start
-        run: ./main
+        run: ./main &
 
   code-quality:
     runs-on: ubuntu-latest
