@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/peterouob/golang_template/pkg/orm/clause"
 	"github.com/peterouob/golang_template/pkg/orm/dialect"
 	"github.com/peterouob/golang_template/pkg/orm/schema"
 	"github.com/peterouob/golang_template/tools"
@@ -15,6 +16,7 @@ type Session struct {
 	db       *sql.DB
 	dialect  dialect.Dialect
 	refTable *schema.Schema
+	clause   clause.Clause
 	sql      strings.Builder
 	sqlVars  []interface{}
 }
@@ -29,6 +31,7 @@ func New(db *sql.DB, dialect dialect.Dialect) *Session {
 func (s *Session) Reset() {
 	s.sql.Reset()
 	s.sqlVars = nil
+	s.clause = clause.Clause{}
 }
 func (s *Session) DB() *sql.DB {
 	return s.db
