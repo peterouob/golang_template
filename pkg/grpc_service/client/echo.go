@@ -9,6 +9,8 @@ import (
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
+	"log"
 	"math"
 	"math/rand"
 	"sync"
@@ -18,31 +20,36 @@ import (
 var (
 	serverConn = sync.Map{}
 	mu         sync.Mutex
+	pool       *grpc_service.Pool
 )
 
-func initPool(addr string, poolSize int) *grpc_service.Pool {
+func initPool(addr string, poolSize int) {
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt64), grpc.MaxCallSendMsgSize(math.MaxInt64)),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                30 * time.Second,
+			Timeout:             10 * time.Second,
+			PermitWithoutStream: true,
+		}),
 	}
 	cfg := &configs.ClientConfig{}
 	cfg.SetServerAddr(addr)
 	cfg.SetPoolSize(poolSize)
 	cfg.SetLifeTime(10 * time.Minute)
 	cfg.SetLifeTimeDeviation(60 * time.Second)
-	clientPool := grpc_service.NewPool(*cfg, opts, &grpc_service.RoundRobin{})
-	return clientPool
+	pool = grpc_service.NewPool(*cfg, opts, &grpc_service.RoundRobin{})
 }
 
-// EchoClient TODO:Default Value Have Error
 func EchoClient(clientCfg *configs.EtcdGrpcCfg) (protobuf.EchoClient, *grpc_service.Pool, error) {
-	if clientCfg == nil {
+	check := tools.CheckStructNil(clientCfg)
+	if !check {
 		clientCfg = &configs.EtcdGrpcCfg{}
 		clientCfg.SetPoolSize(10)
 		clientCfg.SetEndPoints([]string{"127.0.0.1:2379"})
 		clientCfg.SetServiceName("echo_service")
 	}
-	tools.Log(clientCfg.ServiceName)
+
 	hub := etcdclient.GetService(clientCfg.EndPoints)
 	servers := hub.GetServiceEndPoint(clientCfg.ServiceName)
 	if len(servers) == 0 {
@@ -52,16 +59,15 @@ func EchoClient(clientCfg *configs.EtcdGrpcCfg) (protobuf.EchoClient, *grpc_serv
 	idx := rand.Intn(len(servers))
 	server := servers[idx]
 	tools.Log(fmt.Sprintf("Connecting to gRPC server from etcd: %s", server))
-
+	initPool(server, clientCfg.PoolSize)
+	log.Printf("%+v", pool)
 	cc, exists := serverConn.Load(server)
 	if !exists {
 		mu.Lock()
 		defer mu.Unlock()
-		conn, err := grpc.NewClient(server, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		tools.HandelError("new client fail", err)
+		conn := pool.GetConn()
 		client := protobuf.NewEchoClient(conn)
 		serverConn.Store(server, client)
-		pool := initPool(server, clientCfg.PoolSize)
 		return client, pool, nil
 	}
 

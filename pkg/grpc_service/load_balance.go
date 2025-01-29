@@ -1,6 +1,8 @@
 package grpc_service
 
-import "sync"
+import (
+	"sync"
+)
 
 type LoadBalance interface {
 	Select(int) int
@@ -16,6 +18,7 @@ var _ LoadBalance = (*RoundRobin)(nil)
 func (rr *RoundRobin) Select(n int) int {
 	rr.mu.Lock()
 	defer rr.mu.Unlock()
+
 	i := rr.currIndex
 	rr.currIndex = (i + 1) % n
 	return i

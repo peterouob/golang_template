@@ -16,9 +16,9 @@ func init() {
 
 func TestEchoEtcd(t *testing.T) {
 	cfg := &configs.EtcdGrpcCfg{}
-	//cfg.SetPoolSize(10)
-	//cfg.SetEndPoints([]string{"127.0.0.1:2379"})
-	//cfg.SetServiceName("echo_service")
+	cfg.SetPoolSize(4)
+	cfg.SetEndPoints([]string{"127.0.0.1:2379"})
+	cfg.SetServiceName("echo_service")
 	client, pool, err := grpcclient.EchoClient(cfg)
 	assert.NotNil(t, client)
 	assert.NotNil(t, pool)

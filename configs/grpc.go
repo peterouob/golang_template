@@ -35,7 +35,7 @@ func (cc *ClientConfig) SetLifeTimeDeviation(lifeTime time.Duration) *ClientConf
 	return cc
 }
 
-func (cc *ClientConfig) GenLifeTime() time.Duration {
+func (cc *ClientConfig) GetLifeTime() time.Duration {
 	if cc.LifeTime > 0 {
 		random := time.Duration(int64(rand.Float64() * float64(cc.LifeTimeDeviation)))
 		return cc.LifeTimeDeviation + random

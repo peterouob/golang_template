@@ -3,6 +3,7 @@ package tools
 import (
 	"errors"
 	"net"
+	"reflect"
 )
 
 func GetLocalIP() (ipv4 string) {
@@ -27,4 +28,22 @@ func GetLocalIP() (ipv4 string) {
 	err = errors.New("not found ip from get local ip")
 	HandelError("GetLocalIP error ", err)
 	return
+}
+
+func CheckStructNil(value interface{}) bool {
+	v := reflect.ValueOf(value)
+
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+	for i := 0; i < v.NumField(); i++ {
+		f := v.Field(i)
+		if f.Kind() != reflect.Ptr {
+			continue
+		}
+		if f.IsNil() {
+			return false
+		}
+	}
+	return true
 }
