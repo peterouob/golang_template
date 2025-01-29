@@ -30,9 +30,6 @@ jobs:
       - name: Build
         run: go build -o main
 
-      - name: Check etcd status
-        run: etcdctl --endpoints=http://localhost:2379 endpoint status
-
       - name: Start
         run: ./main &
 
