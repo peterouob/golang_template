@@ -1,4 +1,4 @@
-package orm
+package sqlite
 
 import (
 	"database/sql"
@@ -34,7 +34,7 @@ const (
 )
 
 func TestConnect(t *testing.T) {
-	eg := engine.NewEngine("sqlite3", "main.db")
+	eg := engine.NewEngine("sqlite3", "./main.db")
 	assert.NotEqual(t, nil, eg)
 	defer eg.Close()
 	s := eg.NewSession()

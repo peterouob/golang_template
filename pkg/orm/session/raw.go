@@ -84,13 +84,27 @@ func (s *Session) RefTable() *schema.Schema {
 
 func (s *Session) CreateTable() error {
 	table := s.RefTable()
-	var columns []string
-	for _, field := range table.Fields {
-		columns = append(columns, fmt.Sprintf("%s %s %s", field.Name, field.Type, field.Tag))
+	if table == nil {
+		return fmt.Errorf("session: refTable is nil, cannot create table")
 	}
-	desc := strings.Join(columns, ",")
-	if _, err := s.Raw(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s)", table.Name, desc)).Exec(); err != nil {
-		return errors.New(fmt.Sprint("create table err:", err))
+
+	var columns []string
+	var pk string
+	for _, field := range table.Fields {
+		columnDef := fmt.Sprintf("%s %s", field.Name, field.Type)
+		if field.Tag == "pk" {
+			pk = field.Name
+		}
+		columns = append(columns, columnDef)
+	}
+
+	desc := strings.Join(columns, ", ")
+	if pk == "" {
+		_, err := s.Raw(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s);", table.Name, desc)).Exec()
+		tools.HandelError("create table err", err)
+	} else {
+		_, err := s.Raw(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s, PRIMARY KEY (%s));", table.Name, desc, pk)).Exec()
+		tools.HandelError("create table err with primary key", err)
 	}
 	return nil
 }
@@ -98,6 +112,18 @@ func (s *Session) CreateTable() error {
 func (s *Session) DropTable() error {
 	if _, err := s.Raw(fmt.Sprintf("DROP TABLE IF EXISTS %s", s.RefTable().Name)).Exec(); err != nil {
 		return errors.New(fmt.Sprint("drop table err:", err))
+	}
+	return nil
+}
+
+func (s *Session) SetPkey() error {
+	table := s.RefTable()
+	for _, field := range table.Fields {
+		if field.Tag == "pk" {
+			_, err := s.Raw(fmt.Sprintf("SET PRIMARY KEY %s", field.Name)).Exec()
+			tools.HandelError("set pk err", err)
+			return nil
+		}
 	}
 	return nil
 }
