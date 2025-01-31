@@ -72,6 +72,6 @@ func GetGRPCClient(clientCfg *configs.EtcdGrpcCfg, serviceName string) (interfac
 	case "echo_service":
 		return protobuf.NewEchoClient(conn), pool, nil
 	default:
-		return nil, nil, fmt.Errorf("未知的 gRPC 服務: %s", serviceName)
+		return nil, nil, fmt.Errorf("unknown gRPC service: %s", serviceName)
 	}
 }
