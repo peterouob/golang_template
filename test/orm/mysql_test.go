@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/peterouob/golang_template/pkg/orm/clause"
 	"github.com/peterouob/golang_template/pkg/orm/dialect"
 	"github.com/peterouob/golang_template/pkg/orm/session"
 	"github.com/peterouob/golang_template/tools"
@@ -17,17 +16,7 @@ func init() {
 }
 
 var (
-	TestDB      *sql.DB
 	TestDial, _ = dialect.GetDialect("mysql")
-)
-
-const (
-	INSERT clause.Type = iota
-	VALUES
-	SELECT
-	LIMIT
-	WHERE
-	ORDERBY
 )
 
 type User struct {
@@ -37,8 +26,6 @@ type User struct {
 
 var (
 	user1 = &User{"Tom", 18}
-	user2 = &User{"Sam", 25}
-	user3 = &User{"Jack", 25}
 )
 
 func initMysql() *sql.DB {
