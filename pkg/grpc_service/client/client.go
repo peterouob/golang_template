@@ -1,6 +1,7 @@
 package grpcclient
 
 import (
+	"context"
 	"fmt"
 	"github.com/peterouob/golang_template/api/protobuf"
 	"github.com/peterouob/golang_template/configs"
@@ -10,7 +11,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
-	"log"
 	"math"
 	"math/rand"
 	"sync"
@@ -41,39 +41,37 @@ func initPool(addr string, poolSize int) {
 	pool = grpc_service.NewPool(*cfg, opts, &grpc_service.RoundRobin{})
 }
 
-func EchoClient(clientCfg *configs.EtcdGrpcCfg) (protobuf.EchoClient, *grpc_service.Pool, error) {
-	check := tools.CheckStructNil(clientCfg)
-	if !check {
+func GetGRPCClient(clientCfg *configs.EtcdGrpcCfg, serviceName string) (interface{}, *grpc_service.Pool, error) {
+	if clientCfg == nil || tools.CheckStructNil(clientCfg) {
 		clientCfg = &configs.EtcdGrpcCfg{}
 		clientCfg.SetPoolSize(10)
 		clientCfg.SetEndPoints([]string{"127.0.0.1:2379"})
-		clientCfg.SetServiceName("echo_service")
+		clientCfg.SetServiceName(serviceName)
 	}
 
 	hub := etcdclient.GetService(clientCfg.EndPoints)
 	servers := hub.GetServiceEndPoint(clientCfg.ServiceName)
 	if len(servers) == 0 {
-		return nil, nil, fmt.Errorf("get service %s fail", clientCfg.ServiceName)
+		return nil, nil, fmt.Errorf("cannot get the service : %s", clientCfg.ServiceName)
 	}
 
-	idx := rand.Intn(len(servers))
-	server := servers[idx]
-	tools.Log(fmt.Sprintf("Connecting to gRPC server from etcd: %s", server))
+	server := servers[rand.Intn(len(servers))]
+	tools.Log(fmt.Sprintf("from etcd connect to grpc server : %s", server))
+
 	initPool(server, clientCfg.PoolSize)
-	log.Printf("%+v", pool)
-	cc, exists := serverConn.Load(server)
-	if !exists {
-		mu.Lock()
-		defer mu.Unlock()
-		conn := pool.GetConn()
-		client := protobuf.NewEchoClient(conn)
-		serverConn.Store(server, client)
-		return client, pool, nil
-	}
-
-	if client, ok := cc.(protobuf.EchoClient); ok {
+	if client, exists := serverConn.Load(server); exists {
 		return client, nil, nil
 	}
 
-	return nil, nil, fmt.Errorf("client fail")
+	conn := pool.GetConn()
+
+	_, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	switch serviceName {
+	case "echo_service":
+		return protobuf.NewEchoClient(conn), pool, nil
+	default:
+		return nil, nil, fmt.Errorf("未知的 gRPC 服務: %s", serviceName)
+	}
 }
