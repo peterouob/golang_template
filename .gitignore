@@ -11,3 +11,6 @@ gen
 /default.etcd/
 
 *.db
+
+/api/protobuf/annotations.proto
+/api/protobuf/http.proto

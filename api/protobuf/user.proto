@@ -2,6 +2,8 @@ syntax = "proto3";
 
 option go_package = "../protobuf";
 
+import "annotations.proto";
+
 message EchoRequest {
   string name = 1;
 }
@@ -31,7 +33,12 @@ message LoginUserResponse {
 }
 
 service Echo {
-  rpc Echo(EchoRequest) returns (EchoResponse);
+  rpc Echo(EchoRequest) returns (EchoResponse){
+    option (google.api.http) = {
+      post: "/echo"
+      body: "*"
+    };
+  }
 }
 
 service User {

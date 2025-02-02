@@ -12,7 +12,13 @@ fi
 for file in *.proto;do
   if [[ -f "$file" ]]; then
     echo "Process generator proto ..."
-    protoc --go_out="." --go-grpc_out="." "$file"
+    protoc \
+        -I . \
+        -I /path/to/googleapis \
+        --go_out . \
+        --go-grpc_out . \
+        --grpc-gateway_out . \
+        "$file"
     sleep 1
     go mod tidy
   else
@@ -22,3 +28,13 @@ for file in *.proto;do
 done
 
 echo "generator proto execute success ..."
+
+# protoc -I . --grpc-gateway_out .   --grpc-gateway_opt paths=source_relative     --grpc-gateway_opt generate_unbound_methods=true  --go_out="." --go-grpc_out="."  user.proto
+
+# protoc \
+  #  -I . \
+  #  -I /path/to/googleapis \
+  #  --go_out . \
+  #  --go-grpc_out . \
+  #  --grpc-gateway_out . \
+  #  yourfile.proto

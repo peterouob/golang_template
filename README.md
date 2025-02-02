@@ -3,10 +3,7 @@
 ### Use Todo List to show full fundamental template
 
 - [x] Logger
-- [ ] mq 
-- [ ] gin router
-  - [ ] gin cache
-    - [ ] redis
+- [ ] mq
 - [ ] middleware
   - [ ] 令牌桶
   - [ ] 熔斷
@@ -16,8 +13,8 @@
   - [ ] kafka or rebbit mq
 - [ ] grpc
   - [ ] 攔截器
-  - [ ] gateway
-  - [ ] pool
+  - [x] gateway
+  - [x] pool
 - [x] etcd
 - [ ] prometheus
   - [ ] Grafana
@@ -30,5 +27,5 @@
 - [ ] aws in localstack
   - [ ] ec2
 - [ ] CICD
-  - [ ] github flow or jenkins
+  - [x] github flow or jenkins
   - [ ] argocd

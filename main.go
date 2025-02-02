@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	servicePort = flag.Int("port", 8080, "grpc service port")
+	port = flag.Int("port", 8080, "grpc service port")
 )
 
 func init() {
@@ -16,6 +16,9 @@ func init() {
 
 func main() {
 	flag.Parse()
+	go func() {
+		server.InitGrpcServer(*port)
+	}()
 
-	server.InitGrpcServer(*servicePort)
+	server.GrpcGatewayServer(*port)
 }
