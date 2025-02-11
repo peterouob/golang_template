@@ -19,11 +19,13 @@ func GrpcGatewayServer(port int) {
 
 	mux := runtime.NewServeMux()
 
-	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials())}
 
 	err := protobuf.RegisterEchoHandlerFromEndpoint(ctx, mux, fmt.Sprintf("%s:%d", localIP, port), opts)
 	tools.HandelError("register grpc gateway server", err)
 	tools.Log("register grpc gateway server success")
 	tools.Log(fmt.Sprintf("grpc gateway server listening on port %s:%d", localIP, 7111))
 	err = http.ListenAndServe(fmt.Sprintf("%s:%d", localIP, 7111), mux)
+	tools.HandelError("open http server error", err)
 }

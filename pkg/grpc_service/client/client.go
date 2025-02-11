@@ -6,7 +6,7 @@ import (
 	"github.com/peterouob/golang_template/api/protobuf"
 	"github.com/peterouob/golang_template/configs"
 	etcdclient "github.com/peterouob/golang_template/pkg/etcd/client"
-	"github.com/peterouob/golang_template/pkg/grpc_service"
+	grpcpool "github.com/peterouob/golang_template/pkg/grpc_service/pool"
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,8 +19,8 @@ import (
 
 var (
 	serverConn = sync.Map{}
-	mu         sync.Mutex
-	pool       *grpc_service.Pool
+
+	pool *grpcpool.Pool
 )
 
 func initPool(addr string, poolSize int) {
@@ -38,10 +38,10 @@ func initPool(addr string, poolSize int) {
 	cfg.SetPoolSize(poolSize)
 	cfg.SetLifeTime(10 * time.Minute)
 	cfg.SetLifeTimeDeviation(60 * time.Second)
-	pool = grpc_service.NewPool(*cfg, opts, &grpc_service.RoundRobin{})
+	pool = grpcpool.NewPool(*cfg, opts, &grpcpool.RoundRobin{})
 }
 
-func GetGRPCClient(clientCfg *configs.EtcdGrpcCfg, serviceName string) (interface{}, *grpc_service.Pool, error) {
+func GetGRPCClient(clientCfg *configs.EtcdGrpcCfg, serviceName string) (interface{}, *grpcpool.Pool, error) {
 	if clientCfg == nil || tools.CheckStructNil(clientCfg) {
 		clientCfg = &configs.EtcdGrpcCfg{}
 		clientCfg.SetPoolSize(10)
