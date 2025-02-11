@@ -50,8 +50,10 @@ func TestCreateToken(t *testing.T) {
 	assert.NotEqual(t, token.AccessToken, "")
 
 	parse, err := jwt.Parse(token.AccessToken, func(token *jwt.Token) (interface{}, error) {
-		return []byte(fmt.Sprintf("%s%d", verify.TokenKey.Load().(string), userId)), nil
+		return []byte(fmt.Sprintf("%s", verify.TokenKey.Load().(string))), nil
 	})
+	claims := parse.Claims.(jwt.MapClaims)
+	t.Logf("parse: %v", claims["userId"])
 	assert.NoError(t, err)
 	assert.NotNil(t, parse)
 }

@@ -34,6 +34,14 @@ message LoginUserResponse {
   string Name = 3;
 }
 
+message TokenTestRequest {
+
+}
+
+message TokenTestResponse {
+  string msg = 1;
+}
+
 service Echo {
   rpc Echo(EchoRequest) returns (EchoResponse){
     option (google.api.http) = {
@@ -46,4 +54,5 @@ service Echo {
 service User {
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
+  rpc TokenTest(TokenTestRequest) returns (TokenTestResponse);
 }
