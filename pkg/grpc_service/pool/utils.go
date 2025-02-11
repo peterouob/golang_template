@@ -1,4 +1,4 @@
-package grpc_service
+package grpcpool
 
 import (
 	"google.golang.org/grpc"

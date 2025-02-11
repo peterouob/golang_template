@@ -1,4 +1,4 @@
-package grpc_service
+package grpcpool
 
 import (
 	"sync"
