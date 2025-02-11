@@ -11,6 +11,9 @@ gen
 /default.etcd/
 
 *.db
-
+config.yaml
 /api/protobuf/annotations.proto
 /api/protobuf/http.proto
+
+redis.md
+middleware.md
