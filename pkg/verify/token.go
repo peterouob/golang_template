@@ -1,6 +1,8 @@
 package verify
 
 import (
+	"errors"
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/peterouob/golang_template/configs"
@@ -38,6 +40,7 @@ func NewToken(id int64) *Token {
 	}
 }
 
+// CreateToken  不存Redis單純驗證
 func (t *Token) CreateToken() {
 	claims := jwt.MapClaims{
 		"access_id": t.Token.AccessUuid,
@@ -49,7 +52,45 @@ func (t *Token) CreateToken() {
 	}
 
 	tk := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t.AccessToken, err = tk.SignedString([]byte(TokenKey.Load().(string)))
+	t.AccessToken, err = tk.SignedString([]byte(fmt.Sprintf("%s%d", TokenKey.Load().(string), t.UserId)))
 	tools.HandelError("create token error", err)
 	t.AccessId = claims["access_id"].(string)
+}
+
+// CreateRefreshToken TODO:存Redis並實現black list使用
+func (t *Token) CreateRefreshToken() {
+	claims := jwt.MapClaims{
+		"refresh_id": t.Token.RefreshUuid,
+		"exp":        t.Token.RefreshAtExpires,
+		"type":       "refresh",
+		"userId":     t.UserId,
+		"jti":        t.UserId,
+		"iat":        time.Now().Unix(),
+	}
+	tk := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	t.RefreshToken, err = tk.SignedString([]byte(fmt.Sprintf("%s%d", RefreshKey.Load().(string), t.UserId)))
+	tools.HandelError("create refresh token error", err)
+	t.RefreshId = claims["refresh_id"].(string)
+}
+
+func VerifyToken(tokenString string, id int64) *jwt.Token {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			tools.HandelError("parse token error type", err)
+		}
+		return []byte(fmt.Sprintf("%s%d", TokenKey.Load().(string), id)), nil
+	})
+	// TODO:count the fail and report to prometheus count
+	switch {
+	case token.Valid:
+		tools.Log("valid success token")
+	case errors.Is(err, jwt.ErrTokenMalformed):
+		tools.Log("error in Malformed token type")
+	case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet):
+		tools.Log("error in token expired")
+	default:
+		tools.HandelError("couldn't handle this token", err)
+	}
+
+	return token
 }

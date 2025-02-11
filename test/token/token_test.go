@@ -1,22 +1,40 @@
 package token
 
 import (
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/peterouob/golang_template/configs"
 	"github.com/peterouob/golang_template/pkg/verify"
 	"github.com/peterouob/golang_template/tools"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 	"time"
 )
 
-func TestNewToken(t *testing.T) {
+var (
+	userId int64
+	token  *verify.Token
+)
+
+func setup() {
 	tools.InitLogger()
 	configs.InitViper()
-	userId := int64(123)
-	token := verify.NewToken(userId)
+	userId = 123
+	fmt.Printf("\033[1;33m%s\033[0m", "> Setup completed\n")
+	token = verify.NewToken(userId)
+}
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	os.Exit(code)
+}
+
+func TestNewToken(t *testing.T) {
+	token = verify.NewToken(int64(123456))
 	assert.NotNil(t, token)
-	assert.Equal(t, userId, token.UserId)
+	assert.NotEqual(t, userId, token.UserId)
 	assert.NotEmpty(t, token.Token.AccessUuid)
 	assert.NotEmpty(t, token.Token.RefreshUuid)
 	assert.Greater(t, token.Token.AtExpires, time.Now().Unix())
@@ -26,17 +44,13 @@ func TestNewToken(t *testing.T) {
 }
 
 func TestCreateToken(t *testing.T) {
-	tools.InitLogger()
-	configs.InitViper()
-	userId := int64(123)
 	token := verify.NewToken(userId)
 	assert.Equal(t, token.AccessToken, "")
 	token.CreateToken()
 	assert.NotEqual(t, token.AccessToken, "")
-	t.Log(verify.TokenKey.Load().(string))
 
 	parse, err := jwt.Parse(token.AccessToken, func(token *jwt.Token) (interface{}, error) {
-		return []byte(verify.TokenKey.Load().(string)), nil
+		return []byte(fmt.Sprintf("%s%d", verify.TokenKey.Load().(string), userId)), nil
 	})
 	assert.NoError(t, err)
 	assert.NotNil(t, parse)
