@@ -29,7 +29,9 @@ message LoginUserRequest {
 }
 
 message LoginUserResponse {
-  string Name = 1;
+  string AccessToken = 1;
+  string RefreshToken = 2;
+  string Name = 3;
 }
 
 service Echo {
