@@ -38,22 +38,27 @@ func getLogFile() *os.File {
 	return file
 }
 
-func Log(msg string) {
+func getLogger() *zap.Logger {
 	if logg == nil {
-		panic("logger is not initialized")
+		InitLogger()
 	}
-	logg.Info(msg)
+	return logg
+}
+
+func Log(msg string) {
+	getLogger().Info(msg)
+}
+
+func Error(msg string, err error, fields ...zap.Field) {
+	getLogger().Error(msg, append(fields, zap.Error(err))...)
 }
 
 func HandelError(msg string, err error, f ...func(args ...interface{})) {
-	if logg == nil {
-		panic("logger is not initialized")
-	}
 	if err != nil {
 		if len(f) > 0 && f[0] != nil {
-			f[0]()
+			f[0](msg, err)
 		}
-		logg.Error(msg, zap.Error(err))
-		os.Exit(1)
+
+		Error(msg, err)
 	}
 }
