@@ -8,18 +8,18 @@ import (
 	"google.golang.org/grpc"
 )
 
-type LoginServer struct {
+type EchoServer struct {
 	BaseServer
 }
 
-func RegisterLoginServer() *EchoServer {
+func RegisterEchoServer() *EchoServer {
 	echogrpc := &EchoServer{
 		BaseServer{
-			ServiceName: "login_service",
+			ServiceName: "echo_service",
 			Registerfunc: func(server *grpc.Server) {
-				login := grpcserver.NewLoginServer()
-				protobuf.RegisterUserServer(server, login)
-				tools.Log("register echo login success")
+				echo := grpcserver.NewEchoServer()
+				protobuf.RegisterEchoServer(server, echo)
+				tools.Log("register echo server success")
 			},
 		},
 	}
