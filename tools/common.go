@@ -2,6 +2,7 @@ package tools
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"reflect"
 )
@@ -46,4 +47,9 @@ func CheckStructNil(value interface{}) bool {
 		}
 	}
 	return true
+}
+
+func FormatAddr(port int) string {
+	localP := GetLocalIP()
+	return fmt.Sprintf("%s:%d", localP, port)
 }
