@@ -18,9 +18,17 @@ func init() {
 
 func main() {
 	flag.Parse()
-	//server.InitGrpcServer(*port)
-	go server.InitLoginServer()
-	go server.InitTokenServer()
+	servers := []server.GrpcServer{
+		server.RegisterEchoServer(),
+		server.RegisterLoginServer(),
+		server.RegisterTokenTestServer(),
+	}
+	ports := []int{8081, 8082, 8083}
+	for i, gserver := range servers {
+		go gserver.InitServer(ports[i])
+	}
+	//go server.InitLoginServer()
+	//go server.InitTokenServer()
 
 	server.GrpcGatewayServer(*port)
 }
