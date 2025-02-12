@@ -8,14 +8,12 @@ type LoadBalance interface {
 	Select(int) int
 }
 
-type RoundRobin struct {
+type roundRobin struct {
 	currIndex int
 	mu        sync.Mutex
 }
 
-var _ LoadBalance = (*RoundRobin)(nil)
-
-func (rr *RoundRobin) Select(n int) int {
+func (rr *roundRobin) Select(n int) int {
 	rr.mu.Lock()
 	defer rr.mu.Unlock()
 

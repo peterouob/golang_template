@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-type PoolConn struct {
+type poolConn struct {
 	conn     *grpc.ClientConn
 	dealTime time.Time
 }
 
-func (pc *PoolConn) Refresh(cfg configs.ClientConfig, opts ...grpc.DialOption) {
+func (pc *poolConn) Refresh(cfg configs.ClientConfig, opts ...grpc.DialOption) {
 	if pc == nil {
 		return
 	}
@@ -26,7 +26,7 @@ func (pc *PoolConn) Refresh(cfg configs.ClientConfig, opts ...grpc.DialOption) {
 	pc.dealTime = time.Now().Add(cfg.GetLifeTime())
 }
 
-func (pc *PoolConn) ShouldRefresh() bool {
+func (pc *poolConn) ShouldRefresh() bool {
 	if pc.conn == nil {
 		tools.Log("refresh connection because conn is nil!")
 		return true

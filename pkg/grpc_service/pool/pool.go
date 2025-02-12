@@ -5,17 +5,40 @@ import (
 	"github.com/peterouob/golang_template/configs"
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
 	"log"
+	"math"
+	"time"
 )
 
 type Pool struct {
 	Cfg         configs.ClientConfig
-	Conns       []*PoolConn
+	Conns       []*poolConn
 	DialOpts    []grpc.DialOption
 	LoadBalance LoadBalance
 }
 
-func NewPool(cfg configs.ClientConfig, dialOpts []grpc.DialOption, loadBalance LoadBalance) *Pool {
+func InitPool(addr string, poolSize int) *Pool {
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt64), grpc.MaxCallSendMsgSize(math.MaxInt64)),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                30 * time.Second,
+			Timeout:             10 * time.Second,
+			PermitWithoutStream: true,
+		}),
+	}
+	cfg := &configs.ClientConfig{}
+	cfg.SetServerAddr(addr)
+	cfg.SetPoolSize(poolSize)
+	cfg.SetLifeTime(10 * time.Minute)
+	cfg.SetLifeTimeDeviation(60 * time.Second)
+	pool := newPool(*cfg, opts, &roundRobin{})
+	return pool
+}
+
+func newPool(cfg configs.ClientConfig, dialOpts []grpc.DialOption, loadBalance LoadBalance) *Pool {
 	if cfg.PoolSize <= 0 {
 		tools.HandelError("error in NewPool", errors.New("the pool size is smaller than zero"))
 	}
@@ -23,9 +46,9 @@ func NewPool(cfg configs.ClientConfig, dialOpts []grpc.DialOption, loadBalance L
 		tools.HandelError("error in NewPool", errors.New("the server address is empty"))
 	}
 
-	conns := make([]*PoolConn, 0, cfg.PoolSize)
+	conns := make([]*poolConn, 0, cfg.PoolSize)
 	for i := 0; i < cfg.PoolSize; i++ {
-		conn := new(PoolConn)
+		conn := new(poolConn)
 		conn.Refresh(cfg, dialOpts...)
 		conns = append(conns, conn)
 	}
