@@ -2,7 +2,10 @@ package interceptors
 
 import (
 	"context"
-	"fmt"
+	"github.com/peterouob/golang_template/tools"
+	"google.golang.org/grpc/metadata"
+	"time"
+
 	"google.golang.org/grpc"
 )
 
@@ -12,7 +15,9 @@ func LoggingInterceptor(
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
-	fmt.Printf("[Logging] gRPC method: %s\n", info.FullMethod)
+	start := time.Now()
+	md, _ := metadata.FromIncomingContext(ctx)
 	resp, err := handler(ctx, req)
+	tools.Logf("Method: %s, Time: %v,Metadata: %v", info.FullMethod, time.Since(start), md)
 	return resp, err
 }
