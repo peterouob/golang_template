@@ -49,6 +49,10 @@ func Log(msg string) {
 	getLogger().Info(msg)
 }
 
+func Logf(format string, args ...interface{}) {
+	getLogger().Info(fmt.Sprintf(format, args...))
+}
+
 func Error(msg string, err error, fields ...zap.Field) {
 	getLogger().Error(msg, append(fields, zap.Error(err))...)
 }
@@ -61,4 +65,8 @@ func HandelError(msg string, err error, f ...func(args ...interface{})) {
 
 		Error(msg, err)
 	}
+}
+
+func ErrorMsg(msg string) {
+	getLogger().Error(msg)
 }
