@@ -16,7 +16,7 @@ func RegisterLoginServer() *EchoServer {
 	echogrpc := &EchoServer{
 		BaseServer{
 			ServiceName: "login_service",
-			Registerfunc: func(server *grpc.Server) {
+			RegisterFunc: func(server *grpc.Server) {
 				login := grpcserver.NewLoginServer()
 				protobuf.RegisterUserServer(server, login)
 				tools.Log("register echo login success")

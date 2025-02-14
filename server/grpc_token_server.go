@@ -16,7 +16,7 @@ func RegisterTokenTestServer() *EchoServer {
 	echogrpc := &EchoServer{
 		BaseServer{
 			ServiceName: "tokentest_service",
-			Registerfunc: func(server *grpc.Server) {
+			RegisterFunc: func(server *grpc.Server) {
 				tts := grpcserver.NewTokenTestServer()
 				protobuf.RegisterUserServer(server, tts)
 				tools.Log("register echo token test server success")

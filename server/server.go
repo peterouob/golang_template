@@ -13,13 +13,18 @@ type GrpcServer interface {
 }
 
 type BaseServer struct {
-	ServiceName  string
-	Registerfunc func(*grpc.Server)
-	interceptors []grpc.UnaryServerInterceptor
+	ServiceName        string
+	RegisterFunc       func(*grpc.Server)
+	interceptors       []grpc.UnaryServerInterceptor
+	streamInterceptors []grpc.StreamServerInterceptor
 }
 
 func (b *BaseServer) RegisterInterceptors(interceptors ...grpc.UnaryServerInterceptor) {
 	b.interceptors = append(b.interceptors, interceptors...)
+}
+
+func (b *BaseServer) RegisterStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) {
+	b.streamInterceptors = append(b.streamInterceptors, interceptors...)
 }
 
 func (b *BaseServer) InitServer(port int) {
@@ -32,12 +37,17 @@ func (b *BaseServer) InitServer(port int) {
 	if len(b.interceptors) > 0 {
 		opts = append(opts, grpc.ChainUnaryInterceptor(b.interceptors...))
 	}
-	s := grpc.NewServer(opts...)
-	if b.Registerfunc != nil {
-		b.Registerfunc(s)
-	} else {
-		tools.Log("WARNING: RegisterFn is nil, no service registered")
+	if len(b.streamInterceptors) > 0 {
+		opts = append(opts, grpc.ChainStreamInterceptor(b.streamInterceptors...))
 	}
+
+	s := grpc.NewServer(opts...)
+
+	if b.RegisterFunc == nil {
+		tools.ErrorMsg("have not fund the register service")
+	}
+
+	b.RegisterFunc(s)
 
 	etcd := etcdregister.NewEtcdRegister([]string{"127.0.0.1:2379"}, 3)
 	etcd.Register(b.ServiceName, addr)
