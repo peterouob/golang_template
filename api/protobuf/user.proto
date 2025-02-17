@@ -42,6 +42,16 @@ message TokenTestResponse {
   string msg = 1;
 }
 
+message TokenValidRequest {
+  string token = 1;
+  int64 Id = 2;
+}
+
+message TokenValidResponse {
+  bool valid = 1;
+  int64 Id = 2;
+}
+
 service Echo {
   rpc Echo(EchoRequest) returns (EchoResponse){
     option (google.api.http) = {
@@ -55,4 +65,5 @@ service User {
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
   rpc TokenTest(TokenTestRequest) returns (TokenTestResponse);
+  rpc TokenValid(TokenValidRequest) returns (TokenValidResponse);
 }

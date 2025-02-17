@@ -70,3 +70,7 @@ func HandelError(msg string, err error, f ...func(args ...interface{})) {
 func ErrorMsg(msg string) {
 	getLogger().Error(msg)
 }
+
+func FormatString(format string, args ...interface{}) string {
+	return fmt.Sprintf(format, args...)
+}

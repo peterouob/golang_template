@@ -8,7 +8,6 @@ out
 gen
 
 *.log
-/default.etcd/
 
 *.db
 config.yaml
@@ -17,3 +16,8 @@ config.yaml
 
 redis.md
 middleware.md
+
+/deploy/data
+/deploy/grafana_data
+/deploy/prometheus_data
+/default.etcd/

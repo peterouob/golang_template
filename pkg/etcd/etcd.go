@@ -33,6 +33,7 @@ func (e *EtcdRegister) Register(serviceName, addr string) {
 			time.Sleep(time.Duration(e.heart)*time.Second - 100*time.Millisecond)
 		}
 	}()
+	e.listenExit(serviceName, addr)
 }
 
 func (e *EtcdRegister) UnRegister(serviceName, addr string) {
@@ -40,7 +41,7 @@ func (e *EtcdRegister) UnRegister(serviceName, addr string) {
 	tools.Log(fmt.Sprintf("unregiter service: %s from etcd, addr: %s", serviceName, addr))
 }
 
-func (e *EtcdRegister) ListenExit(serviceName, addr string) {
+func (e *EtcdRegister) listenExit(serviceName, addr string) {
 	go func() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)

@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"github.com/peterouob/golang_template/configs"
+	"github.com/peterouob/golang_template/pkg/grpc_service/interceptors"
 	"github.com/peterouob/golang_template/server"
 	"github.com/peterouob/golang_template/tools"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -19,16 +21,13 @@ func init() {
 func main() {
 	flag.Parse()
 	servers := []server.GrpcServer{
-		server.RegisterEchoServer(),
-		server.RegisterLoginServer(),
-		server.RegisterTokenTestServer(),
+		server.RegisterUserService("echo", nil, nil),
+		server.RegisterUserService("login", nil, nil),
+		server.RegisterUserService("jwt", []grpc.UnaryServerInterceptor{interceptors.TokenInterceptors}, nil),
 	}
 	ports := []int{8081, 8082, 8083}
 	for i, gserver := range servers {
 		go gserver.InitServer(ports[i])
 	}
-	//go server.InitLoginServer()
-	//go server.InitTokenServer()
-
 	server.GrpcGatewayServer(*port)
 }

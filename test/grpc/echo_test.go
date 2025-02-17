@@ -11,7 +11,7 @@ import (
 )
 
 func TestEchoServer(t *testing.T) {
-	conn, err := grpc.NewClient("192.168.0.101:8081", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("192.168.0.100:8081", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	assert.NoError(t, err)
 	defer func() {
 		err = conn.Close()

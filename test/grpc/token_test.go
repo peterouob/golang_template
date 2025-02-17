@@ -13,7 +13,7 @@ import (
 )
 
 func TestLoginServer(t *testing.T) {
-	conn, err := grpc.NewClient("192.168.0.101:8085", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("192.168.0.100:8082", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	assert.NoError(t, err)
 	defer func() {
 		err = conn.Close()
@@ -35,7 +35,7 @@ func TestLoginServer(t *testing.T) {
 }
 
 func testToken(t *testing.T, token string) {
-	conn, err := grpc.NewClient("192.168.0.101:8086", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("192.168.0.100:8083", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	assert.NoError(t, err)
 	defer func() {
 		err = conn.Close()
