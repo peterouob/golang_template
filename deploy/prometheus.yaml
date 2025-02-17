@@ -1,0 +1,11 @@
+global:
+  scrape_timeout: 10s
+  evaluation_interval: 30s
+  external_labels:
+    monitor: 'grpc-template'
+
+scrape_configs:
+  - job_name: 'grpc_echo_server'
+    scrape_interval: 1s
+    static_configs:
+      - targets: ['host.docker.internal:9092']

@@ -7,11 +7,9 @@ import (
 	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/peterouob/golang_template/api/protobuf"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -22,7 +20,7 @@ func main() {
 	grpcMetric := grpcprom.NewClientMetrics()
 	reg.MustRegister(grpcMetric)
 
-	conn, err := grpc.NewClient("192.168.0.101:8081",
+	conn, err := grpc.NewClient("192.168.0.100:8081",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(grpcMetric.UnaryClientInterceptor()),
 		grpc.WithStreamInterceptor(grpcMetric.StreamClientInterceptor()))
@@ -30,14 +28,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	httpServer := &http.Server{Handler: promhttp.HandlerFor(reg, promhttp.HandlerOpts{}), Addr: fmt.Sprintf("0.0.0.0:%d", 9094)}
-
-	go func() {
-		if err := httpServer.ListenAndServe(); err != nil {
-			log.Fatal("Unable to start a http server.")
-		}
-	}()
 
 	c := protobuf.NewEchoClient(conn)
 	go func() {

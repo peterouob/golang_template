@@ -1,0 +1,17 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    networks:
+      - my_bridge
+    extra_hosts:
+      - "host.docker.internal:192.168.0.100"
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./prometheus_data:/prometheus
+    ports:
+      - '9090:9090'
+
+networks:
+  my_bridge:
+    driver: bridge
