@@ -6,7 +6,10 @@ import (
 	"github.com/peterouob/golang_template/pkg/grpc_service/interceptors"
 	"github.com/peterouob/golang_template/server"
 	"github.com/peterouob/golang_template/tools"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
+	"log"
+	"net/http"
 )
 
 var (
@@ -20,6 +23,11 @@ func init() {
 
 func main() {
 	flag.Parse()
+	go func() {
+		http.Handle("/", promhttp.Handler())
+		log.Fatal(http.ListenAndServe(":9092", nil))
+	}()
+
 	servers := []server.GrpcServer{
 		server.RegisterUserService("echo", nil, nil),
 		server.RegisterUserService("login", nil, nil),

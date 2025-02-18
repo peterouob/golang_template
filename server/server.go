@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	etcdregister "github.com/peterouob/golang_template/pkg/etcd"
+	in "github.com/peterouob/golang_template/pkg/grpc_service/interceptors"
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
 	"net"
@@ -39,9 +40,13 @@ func (b *BaseServer) registerInterceptors() (opts []grpc.ServerOption) {
 
 func (b *BaseServer) InitServer(port int) {
 	tools.Log(fmt.Sprintf("Starting gRPC server [%s] on port %d ...", b.ServiceName, port))
+
 	addr := tools.FormatAddr(port)
 	lis, err := net.Listen("tcp", addr)
 	tools.HandelError("error in listen addr", err)
+
+	b.RegisterUnInterceptors(in.PromInterceptor)
+
 	opts := b.registerInterceptors()
 	s := grpc.NewServer(opts...)
 

@@ -26,7 +26,7 @@ func RegisterUserService(serviceName string, exUnIn []grpc.UnaryServerIntercepto
 	return nil
 }
 
-func NewUserService(name string, regFunc func(server *grpc.Server), extUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamServerInterceptor) *UserServiceSever {
+func newUserService(name string, regFunc func(server *grpc.Server), extUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamServerInterceptor) *UserServiceSever {
 	baseInterceptor := []grpc.UnaryServerInterceptor{
 		interceptors.LoggingInterceptor,
 	}
@@ -43,7 +43,7 @@ func NewUserService(name string, regFunc func(server *grpc.Server), extUnIn []gr
 }
 
 func newEchoService(exUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamServerInterceptor) *UserServiceSever {
-	return NewUserService("echo", func(server *grpc.Server) {
+	return newUserService("echo", func(server *grpc.Server) {
 		echo := grpcserver.NewEchoServer()
 		protobuf.RegisterEchoServer(server, echo)
 		tools.Log("register echo service success")
@@ -51,7 +51,7 @@ func newEchoService(exUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamSe
 }
 
 func newLoginService(exUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamServerInterceptor) *UserServiceSever {
-	return NewUserService("login", func(server *grpc.Server) {
+	return newUserService("login", func(server *grpc.Server) {
 		s := grpcserver.NewLoginServer()
 		protobuf.RegisterUserServer(server, s)
 		tools.Log("register echo service success")
@@ -59,7 +59,7 @@ func newLoginService(exUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamS
 }
 
 func newjwtService(exUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamServerInterceptor) *UserServiceSever {
-	return NewUserService("jwt", func(server *grpc.Server) {
+	return newUserService("jwt", func(server *grpc.Server) {
 		s := grpcserver.NewTokenTestServer()
 		protobuf.RegisterUserServer(server, s)
 		tools.Log("register echo service success")

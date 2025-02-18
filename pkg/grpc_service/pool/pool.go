@@ -7,10 +7,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
-	"log"
 	"math"
 	"time"
 )
+
+// TODO:loadBalance 從roundRobin balance改成一治性Hash
+// REF:https://www.lxkaka.wang/gprc-balancer/
 
 type Pool struct {
 	Cfg         configs.ClientConfig
@@ -64,8 +66,6 @@ func newPool(cfg configs.ClientConfig, dialOpts []grpc.DialOption, loadBalance L
 func (p *Pool) GetConn() *grpc.ClientConn {
 	idx := p.LoadBalance.Select(len(p.Conns))
 	conn := p.Conns[idx]
-
-	log.Printf("%+v", conn)
 
 	if conn.ShouldRefresh() {
 		conn.Refresh(p.Cfg, p.DialOpts...)
