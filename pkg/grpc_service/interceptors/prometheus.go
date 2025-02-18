@@ -9,22 +9,23 @@ import (
 	"time"
 )
 
-func PromInterceptor(
-	ctx context.Context,
-	req interface{},
-	info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler,
-) (interface{}, error) {
-	s, m := parseInfo(info.FullMethod)
-	start := time.Now()
-	resp, err := handler(ctx, req)
-	code := status.Code(err).String()
+func PromInterceptor(metrics *promsever.Metrics) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context,
+		req interface{},
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (interface{}, error) {
+		s, m := parseInfo(info.FullMethod)
+		start := time.Now()
+		resp, err := handler(ctx, req)
+		code := status.Code(err).String()
 
-	defer func() {
-		promsever.ReqMetrics.WithLabelValues(s, m, code).Inc()
-		promsever.HisMetrics.WithLabelValues(s, m).Observe(time.Since(start).Seconds())
-	}()
-	return resp, err
+		defer func() {
+			metrics.Counter.WithLabelValues(s, m, code).Inc()
+			metrics.Histogram.WithLabelValues(s, m).Observe(time.Since(start).Seconds())
+		}()
+		return resp, err
+	}
 }
 
 func parseInfo(info string) (string, string) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	etcdregister "github.com/peterouob/golang_template/pkg/etcd"
 	in "github.com/peterouob/golang_template/pkg/grpc_service/interceptors"
+	promsever "github.com/peterouob/golang_template/pkg/prometheus"
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
 	"net"
@@ -45,7 +46,8 @@ func (b *BaseServer) InitServer(port int) {
 	lis, err := net.Listen("tcp", addr)
 	tools.HandelError("error in listen addr", err)
 
-	b.RegisterUnInterceptors(in.PromInterceptor)
+	m := promsever.InitPrometheus()
+	b.RegisterUnInterceptors(in.PromInterceptor(m))
 
 	opts := b.registerInterceptors()
 	s := grpc.NewServer(opts...)

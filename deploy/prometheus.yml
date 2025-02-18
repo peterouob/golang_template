@@ -4,6 +4,9 @@ global:
   external_labels:
     monitor: 'grpc-template'
 
+rule_files:
+  - './rules.yml'
+
 scrape_configs:
   - job_name: 'grpc_echo_server'
     scrape_interval: 1s
