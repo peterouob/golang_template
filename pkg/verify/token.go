@@ -52,7 +52,7 @@ func (t *Token) CreateToken() {
 	}
 
 	tk := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t.AccessToken, err = tk.SignedString([]byte(fmt.Sprintf("%s", TokenKey.Load().(string))))
+	t.AccessToken, err = tk.SignedString([]byte(TokenKey.Load().(string)))
 	tools.HandelError("create token error", err)
 	t.AccessId = claims["access_id"].(string)
 }
@@ -78,7 +78,7 @@ func VerifyToken(tokenString string) *jwt.Token {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			tools.HandelError("parse token error type", err)
 		}
-		return []byte(fmt.Sprintf("%s", TokenKey.Load().(string))), nil
+		return []byte(TokenKey.Load().(string)), nil
 	})
 	tools.HandelError("parse token error", err)
 	// TODO:count the fail and report to prometheus count

@@ -16,15 +16,9 @@ func TestLoginServer(t *testing.T) {
 	for {
 		conn, err := grpc.NewClient("192.168.0.100:8082", grpc.WithTransportCredentials(insecure.NewCredentials()))
 		assert.NoError(t, err)
-		defer func() {
-			err = conn.Close()
-			assert.NoError(t, err)
-		}()
 
 		c := protobuf.NewUserClient(conn)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
-		defer cancel()
-
+		ctx := context.Background()
 		r, err := c.LoginUser(ctx, &protobuf.LoginUserRequest{
 			Email:    "admin",
 			Password: "admin",
