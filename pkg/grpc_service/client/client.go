@@ -37,11 +37,11 @@ func GetGRPCClient(clientCfg *configs.EtcdGrpcCfg, serviceName string) (interfac
 	defer cancel()
 
 	switch serviceName {
-	case "echo_service":
+	case "echo":
 		return protobuf.NewEchoClient(conn), nil
-	case "login_service":
+	case "login":
 		return protobuf.NewUserClient(conn), nil
-	case "tokentest_service":
+	case "token":
 		return protobuf.NewUserClient(conn), nil
 	default:
 		return nil, fmt.Errorf("unknown gRPC service: %s", serviceName)

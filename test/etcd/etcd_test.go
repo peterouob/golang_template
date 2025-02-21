@@ -20,8 +20,8 @@ func TestEchoEtcd(t *testing.T) {
 	cfg := &configs.EtcdGrpcCfg{}
 	cfg.SetPoolSize(4)
 	cfg.SetEndPoints([]string{"127.0.0.1:2379"})
-	cfg.SetServiceName("echo_service")
-	client, err := grpcclient.GetGRPCClient(cfg, "echo_service")
+	cfg.SetServiceName("echo")
+	client, err := grpcclient.GetGRPCClient(cfg, "echo")
 	assert.NotNil(t, client)
 	assert.NoError(t, err)
 	resp, _ := client.(protobuf.EchoClient).Echo(context.Background(), &protobuf.EchoRequest{Name: "Hello"})

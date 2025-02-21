@@ -11,9 +11,7 @@ import (
 	"time"
 )
 
-// TODO:loadBalance 從roundRobin balance改成一治性Hash
-// REF:https://www.lxkaka.wang/gprc-balancer/
-
+// Pool REF:https://github.com/shimingyah/pool/blob/master/pool.go
 type Pool struct {
 	Cfg         configs.ClientConfig
 	Conns       []*poolConn

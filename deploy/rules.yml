@@ -1,0 +1,11 @@
+groups:
+  - name: grpc_alters
+    rules:
+      - alert: alter high grpc request
+        expr: sum(increase(grpc_request_total_count[5m])) > 500
+        for: 5s
+        labels:
+          severity: warning
+        annotations:
+          summary: "too high flow for grpc request"
+          des: "too high flow for grpc request at 1 min"
