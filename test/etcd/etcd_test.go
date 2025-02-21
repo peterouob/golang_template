@@ -32,8 +32,8 @@ func TestLoginServer(t *testing.T) {
 	cfg := &configs.EtcdGrpcCfg{}
 	cfg.SetPoolSize(4)
 	cfg.SetEndPoints([]string{"127.0.0.1:2379"})
-	cfg.SetServiceName("login_service")
-	client, err := grpcclient.GetGRPCClient(cfg, "login_service")
+	cfg.SetServiceName("login")
+	client, err := grpcclient.GetGRPCClient(cfg, "login")
 	assert.NoError(t, err)
 	r, err := client.(protobuf.UserClient).LoginUser(context.Background(), &protobuf.LoginUserRequest{
 		Email:    "admin",
@@ -47,8 +47,8 @@ func testToken(t *testing.T, token string) {
 	cfg := &configs.EtcdGrpcCfg{}
 	cfg.SetPoolSize(4)
 	cfg.SetEndPoints([]string{"127.0.0.1:2379"})
-	cfg.SetServiceName("tokentest_service")
-	client, err := grpcclient.GetGRPCClient(cfg, "tokentest_service")
+	cfg.SetServiceName("token")
+	client, err := grpcclient.GetGRPCClient(cfg, "token")
 	assert.NoError(t, err)
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "authorization", fmt.Sprintf("Bearer %s", token))
 	r, _ := client.(protobuf.UserClient).TokenTest(ctx, &protobuf.TokenTestRequest{})

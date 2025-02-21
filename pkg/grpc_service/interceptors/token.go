@@ -2,8 +2,9 @@ package interceptors
 
 import (
 	"context"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/peterouob/golang_template/pkg/verify"
+	"github.com/peterouob/golang_template/api/protobuf"
+	"github.com/peterouob/golang_template/configs"
+	grpcclient "github.com/peterouob/golang_template/pkg/grpc_service/client"
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -12,23 +13,40 @@ import (
 	"strings"
 )
 
+var cfg = &configs.EtcdGrpcCfg{}
+
+func init() {
+	cfg = &configs.EtcdGrpcCfg{}
+	cfg.ServiceName = "auth"
+	cfg.SetEndPoints([]string{"127.0.0.1:2379"})
+	cfg.SetPoolSize(10)
+}
+
 func TokenInterceptors(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
-	tools.Log("start unary interceptor ...")
+	tools.Log("start unary interceptor for token valid ...")
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "missing metadata")
 	}
 	tokenString, err := extractToken(md)
 	tools.HandelError("error in interceptor", err)
-	token := verify.VerifyToken(tokenString)
 
-	uid := int64(token.Claims.(jwt.MapClaims)["userId"].(float64))
-	ctx = context.WithValue(ctx, "uid", uid)
+	c, err := grpcclient.GetGRPCClient(cfg, "auth")
+	tools.HandelError("error in interceptor for get grpc client", err)
+
+	res, err := c.(protobuf.UserClient).TokenValid(ctx, &protobuf.TokenValidRequest{
+		Token: tokenString,
+	})
+	if err != nil || !res.Valid {
+		tools.HandelError("error in interceptor for valid token", err)
+	}
+
+	ctx = context.WithValue(ctx, "uid", res.Id)
 	return handler(ctx, req)
 }
 

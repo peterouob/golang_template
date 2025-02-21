@@ -124,6 +124,7 @@ const (
 	User_RegisterUser_FullMethodName = "/User/RegisterUser"
 	User_LoginUser_FullMethodName    = "/User/LoginUser"
 	User_TokenTest_FullMethodName    = "/User/TokenTest"
+	User_TokenValid_FullMethodName   = "/User/TokenValid"
 )
 
 // UserClient is the client API for User service.
@@ -133,6 +134,7 @@ type UserClient interface {
 	RegisterUser(ctx context.Context, in *RegisterUserRequest, opts ...grpc.CallOption) (*RegisterUserResponse, error)
 	LoginUser(ctx context.Context, in *LoginUserRequest, opts ...grpc.CallOption) (*LoginUserResponse, error)
 	TokenTest(ctx context.Context, in *TokenTestRequest, opts ...grpc.CallOption) (*TokenTestResponse, error)
+	TokenValid(ctx context.Context, in *TokenValidRequest, opts ...grpc.CallOption) (*TokenValidResponse, error)
 }
 
 type userClient struct {
@@ -173,6 +175,16 @@ func (c *userClient) TokenTest(ctx context.Context, in *TokenTestRequest, opts .
 	return out, nil
 }
 
+func (c *userClient) TokenValid(ctx context.Context, in *TokenValidRequest, opts ...grpc.CallOption) (*TokenValidResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TokenValidResponse)
+	err := c.cc.Invoke(ctx, User_TokenValid_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility.
@@ -180,6 +192,7 @@ type UserServer interface {
 	RegisterUser(context.Context, *RegisterUserRequest) (*RegisterUserResponse, error)
 	LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error)
 	TokenTest(context.Context, *TokenTestRequest) (*TokenTestResponse, error)
+	TokenValid(context.Context, *TokenValidRequest) (*TokenValidResponse, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -198,6 +211,9 @@ func (UnimplementedUserServer) LoginUser(context.Context, *LoginUserRequest) (*L
 }
 func (UnimplementedUserServer) TokenTest(context.Context, *TokenTestRequest) (*TokenTestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TokenTest not implemented")
+}
+func (UnimplementedUserServer) TokenValid(context.Context, *TokenValidRequest) (*TokenValidResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TokenValid not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 func (UnimplementedUserServer) testEmbeddedByValue()              {}
@@ -274,6 +290,24 @@ func _User_TokenTest_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_TokenValid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TokenValidRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).TokenValid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_TokenValid_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).TokenValid(ctx, req.(*TokenValidRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -292,6 +326,10 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TokenTest",
 			Handler:    _User_TokenTest_Handler,
+		},
+		{
+			MethodName: "TokenValid",
+			Handler:    _User_TokenValid_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

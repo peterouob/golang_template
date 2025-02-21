@@ -15,7 +15,8 @@ type UserServiceSever struct {
 var userService = map[string]func([]grpc.UnaryServerInterceptor, []grpc.StreamServerInterceptor) *UserServiceSever{
 	"echo":  newEchoService,
 	"login": newLoginService,
-	"jwt":   newjwtService,
+	"jwt":   newJwtService,
+	"auth":  newAuthService,
 }
 
 func RegisterUserService(serviceName string, exUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamServerInterceptor) *UserServiceSever {
@@ -54,14 +55,22 @@ func newLoginService(exUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamS
 	return newUserService("login", func(server *grpc.Server) {
 		s := grpcserver.NewLoginServer()
 		protobuf.RegisterUserServer(server, s)
-		tools.Log("register echo service success")
+		tools.Log("register login service success")
 	}, exUnIn, exStIn)
 }
 
-func newjwtService(exUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamServerInterceptor) *UserServiceSever {
-	return newUserService("jwt", func(server *grpc.Server) {
+func newJwtService(exUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamServerInterceptor) *UserServiceSever {
+	return newUserService("token", func(server *grpc.Server) {
 		s := grpcserver.NewTokenTestServer()
 		protobuf.RegisterUserServer(server, s)
-		tools.Log("register echo service success")
+		tools.Log("register jwt test service success")
+	}, exUnIn, exStIn)
+}
+
+func newAuthService(exUnIn []grpc.UnaryServerInterceptor, exStIn []grpc.StreamServerInterceptor) *UserServiceSever {
+	return newUserService("auth", func(server *grpc.Server) {
+		s := grpcserver.NewTokenValidServer()
+		protobuf.RegisterUserServer(server, s)
+		tools.Log("register token valid service success")
 	}, exUnIn, exStIn)
 }

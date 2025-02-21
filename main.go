@@ -32,10 +32,12 @@ func main() {
 		server.RegisterUserService("echo", nil, nil),
 		server.RegisterUserService("login", nil, nil),
 		server.RegisterUserService("jwt", []grpc.UnaryServerInterceptor{interceptors.TokenInterceptors}, nil),
+		server.RegisterUserService("auth", nil, nil),
 	}
-	ports := []int{8081, 8082, 8083}
+	ports := []int{8081, 8082, 8083, 8084}
 	for i, gserver := range servers {
 		go gserver.InitServer(ports[i])
 	}
-	server.GrpcGatewayServer(*port)
+	//server.GrpcGatewayServer(*port)
+	select {}
 }
