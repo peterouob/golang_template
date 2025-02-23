@@ -3,11 +3,9 @@ package main
 import (
 	"flag"
 	"github.com/peterouob/golang_template/configs"
-	"github.com/peterouob/golang_template/pkg/grpc_service/interceptors"
 	"github.com/peterouob/golang_template/server"
 	"github.com/peterouob/golang_template/tools"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"google.golang.org/grpc"
 	"log"
 	"net/http"
 )
@@ -29,12 +27,12 @@ func main() {
 	}()
 
 	servers := []server.GrpcServer{
-		server.RegisterUserService("echo", nil, nil),
-		server.RegisterUserService("login", nil, nil),
-		server.RegisterUserService("jwt", []grpc.UnaryServerInterceptor{interceptors.TokenInterceptors}, nil),
-		server.RegisterUserService("auth", nil, nil),
+		server.RegisterUserService("echo"),
+		server.RegisterUserService("login"),
+		server.RegisterUserService("jwt"),
+		server.RegisterUserService("auth"),
 	}
-	ports := []int{8081, 8082, 8083, 8084}
+	ports := []int{8081, 8082, 8083, 8084, 8085}
 	for i, gserver := range servers {
 		go gserver.InitServer(ports[i])
 	}

@@ -22,32 +22,35 @@ func init() {
 	cfg.SetPoolSize(10)
 }
 
-func TokenInterceptors(
-	ctx context.Context,
-	req interface{},
-	info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler,
-) (interface{}, error) {
-	tools.Log("start unary interceptor for token valid ...")
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "missing metadata")
+func TokenInterceptors() grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req interface{},
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (interface{}, error) {
+		tools.Log("start unary interceptor for token valid ...")
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return nil, status.Errorf(codes.InvalidArgument, "missing metadata")
+		}
+		tokenString, err := extractToken(md)
+		tools.HandelError("error in interceptor", err)
+
+		c, err := grpcclient.GetGRPCClient(cfg, "auth")
+		tools.HandelError("error in interceptor for get grpc client", err)
+
+		res, err := c.(protobuf.UserClient).TokenValid(ctx, &protobuf.TokenValidRequest{
+			Token: tokenString,
+		})
+		if err != nil || !res.Valid {
+			tools.HandelError("error in interceptor for valid token", err)
+		}
+
+		ctx = context.WithValue(ctx, "uid", res.Id)
+		resp, err := handler(ctx, req)
+		return resp, err
 	}
-	tokenString, err := extractToken(md)
-	tools.HandelError("error in interceptor", err)
-
-	c, err := grpcclient.GetGRPCClient(cfg, "auth")
-	tools.HandelError("error in interceptor for get grpc client", err)
-
-	res, err := c.(protobuf.UserClient).TokenValid(ctx, &protobuf.TokenValidRequest{
-		Token: tokenString,
-	})
-	if err != nil || !res.Valid {
-		tools.HandelError("error in interceptor for valid token", err)
-	}
-
-	ctx = context.WithValue(ctx, "uid", res.Id)
-	return handler(ctx, req)
 }
 
 func extractToken(md metadata.MD) (string, error) {

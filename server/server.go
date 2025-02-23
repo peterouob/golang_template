@@ -8,6 +8,9 @@ import (
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 type GrpcServer interface {
@@ -19,6 +22,8 @@ type BaseServer struct {
 	RegisterFunc       func(*grpc.Server)
 	interceptors       []grpc.UnaryServerInterceptor
 	streamInterceptors []grpc.StreamServerInterceptor
+
+	etcdClient *etcdregister.EtcdRegister
 }
 
 func (b *BaseServer) RegisterUnInterceptors(interceptors ...grpc.UnaryServerInterceptor) {
@@ -62,8 +67,28 @@ func (b *BaseServer) InitServer(port int) {
 	etcd.Register(b.ServiceName, addr)
 
 	err = s.Serve(lis)
+	//b.listenExit(addr, s)
 	tools.HandelError("start grpc server error", err,
 		func(args ...interface{}) {
 			etcd.UnRegister(b.ServiceName, addr)
 		})
+}
+
+func (b *BaseServer) listenExit(addr string, s *grpc.Server) {
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		sig := <-c
+		tools.Log(fmt.Sprintf("receive a signal %s", sig.String()))
+		s.GracefulStop()
+		b.cleanup(addr)
+	}()
+}
+
+func (b *BaseServer) cleanup(addr string) {
+	if b.etcdClient != nil {
+		b.etcdClient.UnRegister(b.ServiceName, addr)
+		tools.Log("Etcd unregistered successfully.")
+	}
+	tools.Log("Server shutdown finished.")
 }

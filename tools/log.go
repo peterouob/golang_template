@@ -71,6 +71,10 @@ func ErrorMsg(msg string) {
 	getLogger().Error(msg)
 }
 
+func ErrorMsgF(format string, args ...interface{}) {
+	getLogger().Error(fmt.Sprintf(format, args...))
+}
+
 func FormatString(format string, args ...interface{}) string {
 	return fmt.Sprintf(format, args...)
 }
