@@ -52,6 +52,20 @@ message TokenValidResponse {
   string msg =3;
 }
 
+
+message NotFoundRequest {}
+message NotFoundResponse {
+  string msg = 1;
+}
+
+service NotFound {
+  rpc NotFound(NotFoundRequest) returns (NotFoundResponse) {
+    option (google.api.http) = {
+      get: "/not_found"
+    };
+  }
+}
+
 service Echo {
   rpc Echo(EchoRequest) returns (EchoResponse){
     option (google.api.http) = {

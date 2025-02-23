@@ -19,6 +19,108 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	NotFound_NotFound_FullMethodName = "/NotFound/NotFound"
+)
+
+// NotFoundClient is the client API for NotFound service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type NotFoundClient interface {
+	NotFound(ctx context.Context, in *NotFoundRequest, opts ...grpc.CallOption) (*NotFoundResponse, error)
+}
+
+type notFoundClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewNotFoundClient(cc grpc.ClientConnInterface) NotFoundClient {
+	return &notFoundClient{cc}
+}
+
+func (c *notFoundClient) NotFound(ctx context.Context, in *NotFoundRequest, opts ...grpc.CallOption) (*NotFoundResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NotFoundResponse)
+	err := c.cc.Invoke(ctx, NotFound_NotFound_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// NotFoundServer is the server API for NotFound service.
+// All implementations must embed UnimplementedNotFoundServer
+// for forward compatibility.
+type NotFoundServer interface {
+	NotFound(context.Context, *NotFoundRequest) (*NotFoundResponse, error)
+	mustEmbedUnimplementedNotFoundServer()
+}
+
+// UnimplementedNotFoundServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedNotFoundServer struct{}
+
+func (UnimplementedNotFoundServer) NotFound(context.Context, *NotFoundRequest) (*NotFoundResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NotFound not implemented")
+}
+func (UnimplementedNotFoundServer) mustEmbedUnimplementedNotFoundServer() {}
+func (UnimplementedNotFoundServer) testEmbeddedByValue()                  {}
+
+// UnsafeNotFoundServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to NotFoundServer will
+// result in compilation errors.
+type UnsafeNotFoundServer interface {
+	mustEmbedUnimplementedNotFoundServer()
+}
+
+func RegisterNotFoundServer(s grpc.ServiceRegistrar, srv NotFoundServer) {
+	// If the following call pancis, it indicates UnimplementedNotFoundServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&NotFound_ServiceDesc, srv)
+}
+
+func _NotFound_NotFound_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NotFoundRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotFoundServer).NotFound(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotFound_NotFound_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotFoundServer).NotFound(ctx, req.(*NotFoundRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// NotFound_ServiceDesc is the grpc.ServiceDesc for NotFound service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var NotFound_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "NotFound",
+	HandlerType: (*NotFoundServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "NotFound",
+			Handler:    _NotFound_NotFound_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "user.proto",
+}
+
+const (
 	Echo_Echo_FullMethodName = "/Echo/Echo"
 )
 
