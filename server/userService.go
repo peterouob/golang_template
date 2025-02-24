@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/peterouob/golang_template/api/protobuf"
-	"github.com/peterouob/golang_template/pkg/grpc_service/interceptors"
-	grpcserver "github.com/peterouob/golang_template/pkg/grpc_service/server"
+	"github.com/peterouob/golang_template/pkg/grpc/interceptors"
+	grpcserver "github.com/peterouob/golang_template/pkg/grpc/server"
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
 )
@@ -13,10 +13,11 @@ type UserServiceSever struct {
 }
 
 var userService = map[string]func() *UserServiceSever{
-	"echo":  newEchoService,
-	"login": newLoginService,
-	"jwt":   newJwtService,
-	"auth":  newAuthService,
+	"echo":     newEchoService,
+	"login":    newLoginService,
+	"jwt":      newJwtService,
+	"auth":     newAuthService,
+	"register": newRegisterService,
 }
 
 func RegisterUserService(serviceName string) *UserServiceSever {
@@ -83,5 +84,13 @@ func newAuthService() *UserServiceSever {
 		s := grpcserver.NewTokenValidServer()
 		protobuf.RegisterUserServer(server, s)
 		tools.Log("register token valid service success")
+	}, nil, nil)
+}
+
+func newRegisterService() *UserServiceSever {
+	return newUserService("register", func(server *grpc.Server) {
+		s := grpcserver.NewRegisterServer()
+		protobuf.RegisterUserServer(server, s)
+		tools.Log("register user register service success")
 	}, nil, nil)
 }

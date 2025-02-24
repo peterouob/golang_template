@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/peterouob/golang_template/api/protobuf"
 	"github.com/peterouob/golang_template/configs"
-	grpcclient "github.com/peterouob/golang_template/pkg/grpc_service/client"
+	grpcclient "github.com/peterouob/golang_template/pkg/grpc/client"
 	"github.com/peterouob/golang_template/tools"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"

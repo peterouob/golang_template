@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 	etcdregister "github.com/peterouob/golang_template/pkg/etcd"
-	in "github.com/peterouob/golang_template/pkg/grpc_service/interceptors"
+	in "github.com/peterouob/golang_template/pkg/grpc/interceptors"
 	promsever "github.com/peterouob/golang_template/pkg/prometheus"
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
