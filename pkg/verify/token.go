@@ -1,12 +1,15 @@
 package verify
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/peterouob/golang_template/configs"
+	"github.com/peterouob/golang_template/pkg/repository"
 	"github.com/peterouob/golang_template/tools"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -93,4 +96,14 @@ func VerifyToken(tokenString string) *jwt.Token {
 		tools.HandelError("couldn't handle this token", err)
 	}
 	return token
+}
+
+func SaveToken(ctx context.Context, id int64) {
+	token := NewToken(id)
+	token.CreateToken()
+	token.CreateRefreshToken()
+	exp := token.Token.GetRefreshAtExpires()
+	key := token.Token.GetRefreshTokenUUid()
+	tokenRepo := repository.GetTokenRepo()
+	tokenRepo.SaveToken(ctx, strconv.FormatInt(id, 10), key, token.RefreshToken, exp)
 }

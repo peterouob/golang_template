@@ -9,3 +9,19 @@ type Token struct {
 	RefreshUuid      string `json:"refresh_uuid"`
 	RefreshAtExpires int64  `json:"rat_expires"`
 }
+
+func (t *Token) GetRefreshTokenUUid() string {
+	return t.RefreshUuid
+}
+
+func (t *Token) SetTokenRefreshAtExpires(exp int64) {
+	t.RefreshAtExpires = exp
+}
+
+func (t *Token) GetRefreshUUid() string {
+	return t.RefreshUuid
+}
+
+func (t *Token) GetRefreshAtExpires() int64 {
+	return t.RefreshAtExpires
+}
