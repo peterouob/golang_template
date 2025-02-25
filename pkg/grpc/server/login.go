@@ -3,6 +3,8 @@ package grpcserver
 import (
 	"context"
 	"github.com/peterouob/golang_template/api/protobuf"
+	mdb "github.com/peterouob/golang_template/pkg/db/mysql"
+	"github.com/peterouob/golang_template/pkg/repository"
 	"github.com/peterouob/golang_template/pkg/verify"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,14 +19,19 @@ func NewLoginServer() *LoginServer {
 }
 
 func (l LoginServer) LoginUser(ctx context.Context, in *protobuf.LoginUserRequest) (*protobuf.LoginUserResponse, error) {
-	if in.Email != "admin" || in.Password != "admin" {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid argument")
+	user := &mdb.UserModel{
+		Email:    in.GetEmail(),
+		Password: in.GetPassword(),
 	}
-	token := verify.NewToken(123)
-	token.CreateToken()
-	token.CreateRefreshToken()
-	return &protobuf.LoginUserResponse{
-		AccessToken:  token.AccessToken,
-		RefreshToken: token.RefreshToken,
-	}, nil
+	u := repository.GetUserRepo()
+	id, name := u.LoginUserByEmailAndPassword(*user)
+	if id != -1 {
+		aToken, rToken := verify.SaveToken(ctx, id)
+		return &protobuf.LoginUserResponse{
+			Name:         name,
+			AccessToken:  aToken,
+			RefreshToken: rToken,
+		}, nil
+	}
+	return nil, status.Error(codes.Internal, "Error")
 }

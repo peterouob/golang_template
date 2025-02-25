@@ -46,9 +46,16 @@ func main() {
 		server.RegisterUserService("register"),
 	}
 	ports := []int{8081, 8082, 8083, 8084, 8085}
-	for i, gserver := range servers {
-		go gserver.InitServer(ports[i])
+
+	readies := make([]<-chan struct{}, len(servers))
+	for i, s := range servers {
+		readies[i] = s.InitServer(ports[i])
 	}
-	//server.GrpcGatewayServer(*port)
+	for _, ch := range readies {
+		<-ch
+	}
+	tools.Log("All gRPC services started. Starting gRPC Gateway...")
+	server.StartGateway(ports)
+
 	select {}
 }

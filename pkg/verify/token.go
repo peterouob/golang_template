@@ -98,7 +98,7 @@ func VerifyToken(tokenString string) *jwt.Token {
 	return token
 }
 
-func SaveToken(ctx context.Context, id int64) {
+func SaveToken(ctx context.Context, id int64) (string, string) {
 	token := NewToken(id)
 	token.CreateToken()
 	token.CreateRefreshToken()
@@ -106,4 +106,5 @@ func SaveToken(ctx context.Context, id int64) {
 	key := token.Token.GetRefreshTokenUUid()
 	tokenRepo := repository.GetTokenRepo()
 	tokenRepo.SaveToken(ctx, strconv.FormatInt(id, 10), key, token.RefreshToken, exp)
+	return token.AccessToken, token.RefreshToken
 }

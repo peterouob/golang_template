@@ -7,14 +7,16 @@ import (
 	promsever "github.com/peterouob/golang_template/pkg/prometheus"
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 type GrpcServer interface {
-	InitServer(port int)
+	InitServer(port int) <-chan struct{}
 }
 
 type BaseServer struct {
@@ -44,34 +46,49 @@ func (b *BaseServer) registerInterceptors() (opts []grpc.ServerOption) {
 	return
 }
 
-func (b *BaseServer) InitServer(port int) {
+func (b *BaseServer) InitServer(port int) <-chan struct{} {
 	tools.Log(fmt.Sprintf("Starting gRPC server [%s] on port %d ...", b.ServiceName, port))
-
+	ready := make(chan struct{})
 	addr := tools.FormatAddr(port)
-	lis, err := net.Listen("tcp", addr)
-	tools.HandelError("error in listen addr", err)
+	go func() {
+		lis, err := net.Listen("tcp", addr)
+		tools.HandelError("error in listen addr", err)
 
-	m := promsever.InitPrometheus()
-	b.RegisterUnInterceptors(in.PromInterceptor(m))
+		m := promsever.InitPrometheus()
+		b.RegisterUnInterceptors(in.PromInterceptor(m))
 
-	opts := b.registerInterceptors()
-	s := grpc.NewServer(opts...)
+		opts := b.registerInterceptors()
+		opts = append(opts, grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionIdle:     5 * time.Minute,
+			MaxConnectionAge:      10 * time.Minute,
+			MaxConnectionAgeGrace: 5 * time.Minute,
+			Time:                  2 * time.Minute,
+			Timeout:               20 * time.Second,
+		}), grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
+			MinTime:             30 * time.Second,
+			PermitWithoutStream: true,
+		}))
 
-	if b.RegisterFunc == nil {
-		tools.ErrorMsg("have not fund the register service")
-	}
+		s := grpc.NewServer(opts...)
 
-	b.RegisterFunc(s)
+		if b.RegisterFunc == nil {
+			tools.ErrorMsg("have not fund the register service")
+		}
 
-	etcd := etcdregister.NewEtcdRegister([]string{"127.0.0.1:2379"}, 3)
-	etcd.Register(b.ServiceName, addr)
+		b.RegisterFunc(s)
 
-	err = s.Serve(lis)
-	//b.listenExit(addr, s)
-	tools.HandelError("start grpc server error", err,
-		func(args ...interface{}) {
-			etcd.UnRegister(b.ServiceName, addr)
-		})
+		etcd := etcdregister.NewEtcdRegister([]string{"127.0.0.1:2379"}, 3)
+		etcd.Register(b.ServiceName, addr)
+
+		close(ready)
+		err = s.Serve(lis)
+		b.listenExit(addr, s)
+		tools.HandelError("start grpc server error", err,
+			func(args ...interface{}) {
+				etcd.UnRegister(b.ServiceName, addr)
+			})
+	}()
+	return ready
 }
 
 func (b *BaseServer) listenExit(addr string, s *grpc.Server) {

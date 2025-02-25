@@ -75,6 +75,8 @@ service Echo {
   }
 }
 
+
+
 service User {
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {
     option (google.api.http) = {
@@ -88,6 +90,16 @@ service User {
       body: "*"
     };
   }
-  rpc TokenTest(TokenTestRequest) returns (TokenTestResponse);
-  rpc TokenValid(TokenValidRequest) returns (TokenValidResponse);
+  rpc TokenTest(TokenTestRequest) returns (TokenTestResponse) {
+    option (google.api.http) = {
+      post: "/tokenTest"
+      body: "*"
+    };
+  }
+  rpc TokenValid(TokenValidRequest) returns (TokenValidResponse) {
+    option (google.api.http) = {
+      post: "/valid"
+      body: "*"
+    };
+  }
 }
