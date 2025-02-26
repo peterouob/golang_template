@@ -4,6 +4,7 @@ type EtcdGrpcCfg struct {
 	EndPoints   []string
 	ServiceName string
 	PoolSize    int
+	MaxRetries  int
 }
 
 func (ec *EtcdGrpcCfg) SetEndPoints(endPoints []string) *EtcdGrpcCfg {

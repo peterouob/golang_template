@@ -61,7 +61,7 @@ message NotFoundResponse {
 service NotFound {
   rpc NotFound(NotFoundRequest) returns (NotFoundResponse) {
     option (google.api.http) = {
-      get: "/not_found"
+      get: "/v1/not_found"
     };
   }
 }
@@ -69,7 +69,7 @@ service NotFound {
 service Echo {
   rpc Echo(EchoRequest) returns (EchoResponse){
     option (google.api.http) = {
-      post: "/echo"
+      post: "/v1/echo"
       body: "*"
     };
   }
@@ -80,26 +80,21 @@ service Echo {
 service User {
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {
     option (google.api.http) = {
-      post: "/register"
+      post: "/v1/user/register"
       body: "*"
     };
   }
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse) {
     option (google.api.http) = {
-      post: "/login"
+      post: "/v1/user/login"
       body: "*"
     };
   }
   rpc TokenTest(TokenTestRequest) returns (TokenTestResponse) {
     option (google.api.http) = {
-      post: "/tokenTest"
+      post: "/v1/user/tokenTest"
       body: "*"
     };
   }
-  rpc TokenValid(TokenValidRequest) returns (TokenValidResponse) {
-    option (google.api.http) = {
-      post: "/valid"
-      body: "*"
-    };
-  }
+  rpc TokenValid(TokenValidRequest) returns (TokenValidResponse) {};
 }

@@ -49,3 +49,29 @@ func GetGRPCClient(clientCfg *configs.EtcdGrpcCfg, serviceName string) (interfac
 		return nil, fmt.Errorf("unknown gRPC service: %s", serviceName)
 	}
 }
+
+func GetGRPCUserClient(cfg *configs.EtcdGrpcCfg) protobuf.UserClient {
+	hub := etcdclient.GetService(cfg.EndPoints)
+	servers := hub.GetServiceEndPoint(cfg.ServiceName)
+
+	if len(servers) == 0 {
+		tools.Log(fmt.Sprintf("from etcd connect to grpc server : %s", cfg.ServiceName))
+		return nil
+	}
+
+	server := servers[rand.Intn(len(servers))]
+	tools.Log(fmt.Sprintf("from etcd connect to grpc server : %s", server))
+	pool := grpcpool.InitPool(server, cfg.PoolSize)
+
+	key := fmt.Sprintf("%s:%s", cfg.ServiceName, server)
+	if client, exists := serverConn.Load(key); exists {
+		return client.(protobuf.UserClient)
+	}
+
+	conn := pool.GetConn()
+
+	newClient := protobuf.NewUserClient(conn)
+	serverConn.Store(key, newClient)
+
+	return newClient
+}

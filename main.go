@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/http"
+	"sync"
 )
 
 var (
@@ -38,10 +39,18 @@ func main() {
 		repository.NewUserRepo(mysqldb)
 		repository.NewTokenRepo(redisdb)
 	}()
+
+	//var userServiceName = []string{
+	//	"token",
+	//	"auth",
+	//	"register",
+	//	"login",
+	//}
+
 	servers := []server.GrpcServer{
 		server.RegisterUserService("echo"),
 		server.RegisterUserService("login"),
-		server.RegisterUserService("jwt"),
+		server.RegisterUserService("token"),
 		server.RegisterUserService("auth"),
 		server.RegisterUserService("register"),
 	}
@@ -55,7 +64,16 @@ func main() {
 		<-ch
 	}
 	tools.Log("All gRPC services started. Starting gRPC Gateway...")
-	server.StartGateway(ports)
 
+	var wg sync.WaitGroup
+	gateways := []*server.GatewayConfig{
+		server.NewGatewayConfig("login", 30001),
+		server.NewGatewayConfig("register", 30002),
+		server.NewGatewayConfig("token", 30003),
+	}
+	for _, gw := range gateways {
+		wg.Add(1)
+		go gw.StartGateway(&wg)
+	}
 	select {}
 }

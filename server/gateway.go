@@ -2,70 +2,80 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/peterouob/golang_template/api/protobuf"
+	"github.com/peterouob/golang_template/configs"
+	grpcclient "github.com/peterouob/golang_template/pkg/grpc/client"
 	"github.com/peterouob/golang_template/tools"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"net/http"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
 
-var gatewayFactor = map[int]func(ctx context.Context, mux *runtime.ServeMux, addr string, opts []grpc.DialOption) error{
-	8081: pb.RegisterEchoHandlerFromEndpoint,
-	8082: pb.RegisterUserHandlerFromEndpoint,
-	8083: pb.RegisterUserHandlerFromEndpoint,
-	8084: pb.RegisterUserHandlerFromEndpoint,
-	8085: pb.RegisterUserHandlerFromEndpoint,
+type GatewayConfig struct {
+	GatewayAddr string
+	ServiceName string
+	Port        int
+	Cfg         *configs.EtcdGrpcCfg
+	sync.RWMutex
 }
 
-const p = 30001
+const p int = 30001
 
-func StartGateway(ports []int) {
+func NewGatewayConfig(serviceName string, port int) *GatewayConfig {
+	cfg := &configs.EtcdGrpcCfg{}
+	cfg.SetPoolSize(10)
+	cfg.SetEndPoints([]string{"127.0.0.1:2379"})
+
+	return &GatewayConfig{
+		Port:        port,
+		ServiceName: serviceName,
+		Cfg:         cfg,
+	}
+}
+
+func (gw *GatewayConfig) StartGateway(wg *sync.WaitGroup) {
+	defer wg.Done()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+	mux := runtime.NewServeMux(runtime.WithIncomingHeaderMatcher(tools.Matcher))
 
-	mux := runtime.NewServeMux(
-		runtime.WithIncomingHeaderMatcher(tools.Matcher))
-	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials())}
-	for _, port := range ports {
-		f, ok := gatewayFactor[port]
-		if !ok {
-			tools.Logf("not found the service from port [%d] ", port)
-			continue
-		}
-		addr := fmt.Sprintf("%s:%d", tools.GetLocalIP(), port)
-		if err := f(ctx, mux, addr, opts); err != nil {
-			tools.HandelError(fmt.Sprintf("Error registering gRPC Gateway on port %d", port), err)
-		} else {
-			tools.Logf("Gateway registered for port [%d] at %s", port, addr)
-		}
+	gw.Cfg.SetServiceName(gw.ServiceName)
+	conn := grpcclient.GetGRPCUserClient(gw.Cfg)
+	if err := pb.RegisterUserHandlerClient(ctx, mux, conn); err != nil {
+		tools.ErrorMsg(fmt.Sprintf("Failed to register handler for %s: %v", gw.ServiceName, err))
+	} else {
+		tools.Logf("Successfully registered handler for %s", gw.ServiceName)
 	}
-	handler := tools.Cors(mux)
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tools.Logf("[%s] Received request: %s %s", gw.ServiceName, r.Method, r.URL.Path)
+		mux.ServeHTTP(w, r)
+	})
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", tools.GetLocalIP(), p),
+		Addr:    fmt.Sprintf("%s:%d", tools.GetLocalIP(), gw.Port),
 		Handler: handler,
 	}
 
 	go func() {
-		tools.Logf("Start gRPC Gateway on port %d", p)
-		if err := server.ListenAndServe(); err != nil {
-			tools.HandelError(fmt.Sprintf("Error starting gRPC Gateway on port %d", p), err)
+		tools.Logf("Start [%s] gRPC Gateway on port %d", gw.ServiceName, gw.Port)
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			tools.HandelError(fmt.Sprintf("Error starting gRPC Gateway [%s] on port %d", gw.ServiceName, gw.Port), err)
 		}
 	}()
 
 	<-ctx.Done()
-	tools.Log("Shutting down gRPC ...")
+	tools.Logf("Shutting down gRPC Gateway: %s", gw.ServiceName)
 
-	shutDown, cancel := context.WithTimeout(ctx, 5*time.Second)
+	shutDownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := server.Shutdown(shutDown); err != nil {
-		tools.HandelError("error in shutdown web server by timeout", err)
+	if err := server.Shutdown(shutDownCtx); err != nil {
+		tools.HandelError(fmt.Sprintf("error in shutdown web server [%s]", gw.ServiceName), err)
 	}
-	tools.Log("gRPC Gateway shutdown completed")
+	tools.Logf("gRPC Gateway [%s] shutdown completed", gw.ServiceName)
 }
