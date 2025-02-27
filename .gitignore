@@ -13,6 +13,7 @@ gen
 config.yaml
 /api/protobuf/annotations.proto
 /api/protobuf/http.proto
+/api/protobuf/timestamp.proto
 
 redis.md
 middleware.md

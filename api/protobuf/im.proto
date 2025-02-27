@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = "../protobuf";
+
+import "timestamp.proto";
+
+message BroadCastRequest {
+  string message = 1;
+}
+
+message BroadCastResponse {
+  google.protobuf.Timestamp timeStamp = 1;
+  string message = 2;
+  string name = 3;
+}
+
+service Chat {
+  rpc BroadCast(stream BroadCastRequest) returns (stream BroadCastResponse){};
+}
