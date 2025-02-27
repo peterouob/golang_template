@@ -24,23 +24,16 @@ func RegisterUserService(serviceName string) *UserServiceSever {
 	u, ok := userService[serviceName]
 	if !ok {
 		tools.ErrorMsgF("error in not found service name %s", serviceName)
-		return newNotFoundServer(serviceName)
 	}
 	return u()
 }
 
-func newNotFoundServer(name string) *UserServiceSever {
-	return newUserService(name, func(s *grpc.Server) {
-		protobuf.RegisterNotFoundServer(s, &protobuf.UnimplementedNotFoundServer{})
-	}, nil, nil)
-}
-
-func newUserService(name string, regFunc func(server *grpc.Server), extUnIn grpc.UnaryServerInterceptor, exStIn grpc.StreamServerInterceptor) *UserServiceSever {
+func newUserService(name string, regFunc func(server *grpc.Server), extUnIn ...grpc.UnaryServerInterceptor) *UserServiceSever {
 	baseInterceptor := []grpc.UnaryServerInterceptor{
 		interceptors.LoggingInterceptor(),
 	}
 	if extUnIn != nil {
-		baseInterceptor = append(baseInterceptor, extUnIn)
+		baseInterceptor = append(baseInterceptor, extUnIn...)
 	}
 	server := &UserServiceSever{
 		BaseServer{
@@ -49,9 +42,7 @@ func newUserService(name string, regFunc func(server *grpc.Server), extUnIn grpc
 		},
 	}
 	server.RegisterUnInterceptors(baseInterceptor...)
-	if exStIn != nil {
-		server.RegisterStreamInterceptors(exStIn)
-	}
+
 	return server
 }
 
@@ -61,7 +52,7 @@ func newLoginService() *UserServiceSever {
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
 		tools.Log("register login service success")
-	}, nil, nil)
+	})
 }
 
 func newJwtService() *UserServiceSever {
@@ -70,7 +61,7 @@ func newJwtService() *UserServiceSever {
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
 		tools.Log("register jwt test service success")
-	}, interceptors.TokenInterceptors(), nil)
+	}, interceptors.TokenInterceptors())
 }
 
 func newAuthService() *UserServiceSever {
@@ -79,7 +70,7 @@ func newAuthService() *UserServiceSever {
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
 		tools.Log("register token valid service success")
-	}, nil, nil)
+	})
 }
 
 func newRegisterService() *UserServiceSever {
@@ -88,5 +79,5 @@ func newRegisterService() *UserServiceSever {
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
 		tools.Log("register user register service success")
-	}, nil, nil)
+	})
 }

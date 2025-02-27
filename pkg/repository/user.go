@@ -30,19 +30,20 @@ func GetUserRepo() *UserRepo {
 	return userRepo
 }
 
-func (userRepo *UserRepo) CreateUser(user mdb.UserModel) {
+func (userRepo *UserRepo) CreateUser(user mdb.UserModel) bool {
 	var count int64
 	userRepo.mdb.Model(&mdb.UserModel{}).Where("email = ?", user.Email).Count(&count)
-	if count <= 0 {
-		tx := userRepo.mdb.Begin()
-		if err := tx.Create(&user).Error; err != nil {
-			tx.Rollback()
-			tools.HandelError("error in create user", err)
-		}
-		tx.Commit()
-	} else {
-		tools.ErrorMsg("have the same user email ")
+	if count > 0 {
+		tools.Log("user already exists")
+		return false
 	}
+	tx := userRepo.mdb.Begin()
+	if err := tx.Create(&user).Error; err != nil {
+		tx.Rollback()
+		tools.HandelError("error in create user", err)
+	}
+	tx.Commit()
+	return true
 }
 
 func (userRepo *UserRepo) LoginUserByEmailAndPassword(user mdb.UserModel) (int64, string) {

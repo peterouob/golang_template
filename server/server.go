@@ -37,6 +37,8 @@ func (b *BaseServer) RegisterStreamInterceptors(interceptors ...grpc.StreamServe
 }
 
 func (b *BaseServer) registerInterceptors() (opts []grpc.ServerOption) {
+	tools.Logf("Registering %d stream interceptors", len(b.streamInterceptors))
+
 	if len(b.interceptors) > 0 {
 		opts = append(opts, grpc.ChainUnaryInterceptor(b.interceptors...))
 	}

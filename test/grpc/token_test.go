@@ -24,7 +24,8 @@ func TestLoginServer(t *testing.T) {
 	assert.NoError(t, err)
 	t.Logf("Access Token :%s", r.AccessToken)
 	t.Logf("Refresh Token :%s", r.RefreshToken)
-	testToken(t, r.AccessToken)
+	//testToken(t, r.AccessToken)
+	testBroadCast(t, r.AccessToken)
 }
 
 func testToken(t *testing.T, token string) {

@@ -13,7 +13,6 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/http"
-	"sync"
 )
 
 var (
@@ -45,8 +44,9 @@ func main() {
 		server.RegisterUserService("token"),
 		server.RegisterUserService("auth"),
 		server.RegisterUserService("register"),
+		server.RegisterIMService("broadcast"),
 	}
-	ports := []int{8081, 8082, 8083, 8084, 8085}
+	ports := []int{8082, 8083, 8084, 8085, 7082}
 
 	readies := make([]<-chan struct{}, len(servers))
 	for i, s := range servers {
@@ -57,15 +57,15 @@ func main() {
 	}
 	tools.Log("All gRPC services started. Starting gRPC Gateway...")
 
-	var wg sync.WaitGroup
-	gateways := []*server.GatewayConfig{
-		server.NewGatewayConfig("login", 30001),
-		server.NewGatewayConfig("register", 30002),
-		server.NewGatewayConfig("token", 30003),
-	}
-	for _, gw := range gateways {
-		wg.Add(1)
-		go gw.StartGateway(&wg)
-	}
+	//var wg sync.WaitGroup
+	//gateways := []*server.GatewayConfig{
+	//	server.NewGatewayConfig("login", 30001),
+	//	server.NewGatewayConfig("register", 30002),
+	//	server.NewGatewayConfig("token", 30003),
+	//}
+	//for _, gw := range gateways {
+	//	wg.Add(1)
+	//	go gw.StartGateway(&wg)
+	//}
 	select {}
 }

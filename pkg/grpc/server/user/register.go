@@ -6,8 +6,9 @@ import (
 	"github.com/peterouob/golang_template/api/protobuf"
 	mdb "github.com/peterouob/golang_template/pkg/db/mysql"
 	"github.com/peterouob/golang_template/pkg/repository"
-	"github.com/peterouob/golang_template/pkg/verify"
 	"github.com/peterouob/golang_template/tools"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"strconv"
 )
 
@@ -32,8 +33,9 @@ func (r RegisterServer) RegisterUser(ctx context.Context, in *protobuf.RegisterU
 		Id:       id,
 	}
 	u := repository.GetUserRepo()
-	u.CreateUser(*user)
-	verify.SaveToken(ctx, id)
+	if ok := u.CreateUser(*user); !ok {
+		return &protobuf.RegisterUserResponse{}, status.Error(codes.Internal, "create user error")
+	}
 	return &protobuf.RegisterUserResponse{
 		Id: id,
 	}, nil

@@ -7,9 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/peterouob/golang_template/configs"
-	"github.com/peterouob/golang_template/pkg/repository"
 	"github.com/peterouob/golang_template/tools"
-	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -98,13 +96,13 @@ func VerifyToken(tokenString string) *jwt.Token {
 	return token
 }
 
+// SaveToken 等black list時使用
 func SaveToken(ctx context.Context, id int64) (string, string) {
 	token := NewToken(id)
 	token.CreateToken()
 	token.CreateRefreshToken()
-	exp := token.Token.GetRefreshAtExpires()
-	key := token.Token.GetRefreshTokenUUid()
-	tokenRepo := repository.GetTokenRepo()
-	tokenRepo.SaveToken(ctx, strconv.FormatInt(id, 10), key, token.RefreshToken, exp)
+	//exp := token.Token.GetRefreshAtExpires()
+	//tokenRepo := repository.GetTokenRepo()
+	//tokenRepo.SaveRefreshToken(ctx, strconv.FormatInt(id, 10), token.RefreshToken, exp)
 	return token.AccessToken, token.RefreshToken
 }
