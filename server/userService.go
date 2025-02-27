@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/peterouob/golang_template/api/protobuf"
 	"github.com/peterouob/golang_template/pkg/grpc/interceptors"
-	grpcserver "github.com/peterouob/golang_template/pkg/grpc/server"
+	"github.com/peterouob/golang_template/pkg/grpc/server/user"
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -14,7 +14,6 @@ type UserServiceSever struct {
 }
 
 var userService = map[string]func() *UserServiceSever{
-	"echo":     newEchoService,
 	"login":    newLoginService,
 	"token":    newJwtService,
 	"auth":     newAuthService,
@@ -56,18 +55,9 @@ func newUserService(name string, regFunc func(server *grpc.Server), extUnIn grpc
 	return server
 }
 
-func newEchoService() *UserServiceSever {
-	return newUserService("echo", func(server *grpc.Server) {
-		echo := grpcserver.NewEchoServer()
-		protobuf.RegisterEchoServer(server, echo)
-		reflection.Register(server)
-		tools.Log("register echo service success")
-	}, nil, nil)
-}
-
 func newLoginService() *UserServiceSever {
 	return newUserService("login", func(server *grpc.Server) {
-		s := grpcserver.NewLoginServer()
+		s := user.NewLoginServer()
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
 		tools.Log("register login service success")
@@ -76,7 +66,7 @@ func newLoginService() *UserServiceSever {
 
 func newJwtService() *UserServiceSever {
 	return newUserService("token", func(server *grpc.Server) {
-		s := grpcserver.NewTokenTestServer()
+		s := user.NewTokenTestServer()
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
 		tools.Log("register jwt test service success")
@@ -85,7 +75,7 @@ func newJwtService() *UserServiceSever {
 
 func newAuthService() *UserServiceSever {
 	return newUserService("auth", func(server *grpc.Server) {
-		s := grpcserver.NewTokenValidServer()
+		s := user.NewTokenValidServer()
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
 		tools.Log("register token valid service success")
@@ -94,7 +84,7 @@ func newAuthService() *UserServiceSever {
 
 func newRegisterService() *UserServiceSever {
 	return newUserService("register", func(server *grpc.Server) {
-		s := grpcserver.NewRegisterServer()
+		s := user.NewRegisterServer()
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
 		tools.Log("register user register service success")

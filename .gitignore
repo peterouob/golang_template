@@ -21,7 +21,5 @@ middleware.md
 /deploy/grafana_data
 /deploy/prometheus_data
 /default.etcd/
-/api/protobuf/default.etcd/member/snap/db
-/api/protobuf/default.etcd/member/wal/0.tmp
-/api/protobuf/default.etcd/member/wal/0000000000000000-0000000000000000.wal
-/api/protobuf/*
+/deploy/kafka_data
+/deploy/kui

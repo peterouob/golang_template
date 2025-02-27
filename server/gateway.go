@@ -52,10 +52,7 @@ func (gw *GatewayConfig) StartGateway(wg *sync.WaitGroup) {
 		tools.Logf("Successfully registered handler for %s", gw.ServiceName)
 	}
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tools.Logf("[%s] Received request: %s %s", gw.ServiceName, r.Method, r.URL.Path)
-		mux.ServeHTTP(w, r)
-	})
+	handler := tools.Cors(mux)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", tools.GetLocalIP(), gw.Port),

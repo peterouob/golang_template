@@ -40,15 +40,7 @@ func main() {
 		repository.NewTokenRepo(redisdb)
 	}()
 
-	//var userServiceName = []string{
-	//	"token",
-	//	"auth",
-	//	"register",
-	//	"login",
-	//}
-
 	servers := []server.GrpcServer{
-		server.RegisterUserService("echo"),
 		server.RegisterUserService("login"),
 		server.RegisterUserService("token"),
 		server.RegisterUserService("auth"),
