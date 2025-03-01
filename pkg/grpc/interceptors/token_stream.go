@@ -2,6 +2,7 @@ package interceptors
 
 import (
 	"context"
+	"errors"
 	"github.com/peterouob/golang_template/api/protobuf"
 	grpcclient "github.com/peterouob/golang_template/pkg/grpc/client"
 	"github.com/peterouob/golang_template/tools"
@@ -14,6 +15,7 @@ import (
 
 type wrappedStream struct {
 	grpc.ServerStream
+	ctx context.Context
 }
 
 func (w *wrappedStream) RecvMsg(m any) error {
@@ -26,8 +28,12 @@ func (w *wrappedStream) SendMsg(m any) error {
 	return w.ServerStream.SendMsg(m)
 }
 
-func newWrappedStream(s grpc.ServerStream) grpc.ServerStream {
-	return &wrappedStream{s}
+func (w *wrappedStream) Context() context.Context {
+	return w.ctx
+}
+
+func newWrappedStream(s grpc.ServerStream, ctx context.Context) grpc.ServerStream {
+	return &wrappedStream{s, ctx}
 }
 
 func TokenStreamInterceptor(srv any, ss grpc.ServerStream, _ *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
@@ -39,22 +45,23 @@ func TokenStreamInterceptor(srv any, ss grpc.ServerStream, _ *grpc.StreamServerI
 		return status.Error(codes.InvalidArgument, "missing metadata")
 	}
 	tokenString, err := extractToken(md)
-	tools.HandelError("error in interceptor", err)
-
 	c, err := grpcclient.GetGRPCClient(cfg, "auth")
 	tools.HandelError("error in interceptor for get grpc client", err)
 
-	res, err := c.(protobuf.UserClient).TokenValid(ctx, &protobuf.TokenValidRequest{
+	tctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	res, err := c.(protobuf.UserClient).TokenValid(tctx, &protobuf.TokenValidRequest{
 		Token: tokenString,
 	})
-	if err != nil || !res.Valid {
-		tools.HandelError("error in interceptor for valid token", err)
+	ctx = context.WithValue(ctx, "id", res.Id)
+
+	if err == nil && res.Valid == true {
+		err = handler(srv, newWrappedStream(ss, ctx))
+		tools.Log("Handler execution finished")
+	} else if res.Valid != true {
+		return status.Error(codes.PermissionDenied, "permission denied")
 	}
 
-	ctx = context.Background()
-
-	err = handler(srv, newWrappedStream(ss))
-	tools.Log("Handler execution finished")
-
-	return err
+	return errors.New("error in interceptor")
 }

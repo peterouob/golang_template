@@ -3,6 +3,7 @@ package im
 import (
 	"github.com/peterouob/golang_template/api/protobuf"
 	"github.com/peterouob/golang_template/tools"
+	"log"
 	"sync"
 )
 
@@ -23,5 +24,8 @@ func NewBroadCastServer() *BroadCastServer {
 
 func (b *BroadCastServer) BroadCast(srv protobuf.Chat_BroadCastServer) error {
 	tools.Log("Hello this is BroadCast")
+	ctx := srv.Context()
+	id := ctx.Value("id")
+	log.Println(id)
 	return nil
 }

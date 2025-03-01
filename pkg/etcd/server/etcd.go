@@ -69,8 +69,19 @@ func (s *EtcdService) UnRegister(service string, endpoint string) {
 		strings.TrimRight("/service/grpc", "/"),
 		service,
 		endpoint)
+	resp, err := s.client.Get(ctx, key)
+	if err != nil || len(resp.Kvs) == 0 {
+		tools.Log(fmt.Sprintf("Key %s not found in etcd", key))
+		return
+	}
 
-	_, err := s.client.Delete(ctx, key)
+	leaseID := clientv3.LeaseID(resp.Kvs[0].Lease)
+	tools.Log(fmt.Sprintf("Revoking lease %d for key %s", leaseID, key))
+
+	_, err = s.client.Revoke(ctx, leaseID)
+	tools.HandelError("revoke lease error", err)
+
+	_, err = s.client.Delete(ctx, key)
 	tools.HandelError("delete etcd node error", err)
-	tools.Log(fmt.Sprintf("unregister %s node %s on etcd error", service, endpoint))
+	tools.Log(fmt.Sprintf("unregistered %s node %s from etcd", service, endpoint))
 }

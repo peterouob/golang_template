@@ -16,7 +16,6 @@ import (
 )
 
 var (
-	port    = flag.Int("port", 8082, "grpc service port")
 	mysqldb *gorm.DB
 	redisdb *redis.Client
 )

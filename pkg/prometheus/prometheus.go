@@ -1,13 +1,8 @@
 package prom
 
 import (
-	"fmt"
-	"github.com/peterouob/golang_template/tools"
 	"github.com/prometheus/client_golang/prometheus"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 )
 
 type Metrics struct {
@@ -41,12 +36,5 @@ func InitPrometheus() *Metrics {
 		}
 		prometheus.MustRegister(m.Histogram, m.Counter)
 	})
-	go func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-		sig := <-c
-		tools.Log(fmt.Sprintf("receive a signal %s", sig.String()))
-		os.Exit(0)
-	}()
 	return m
 }

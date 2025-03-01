@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
+	"log"
 	"testing"
 )
 
@@ -19,6 +20,9 @@ func testBroadCast(t *testing.T, token string) {
 	assert.NotNil(t, client)
 
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "authorization", fmt.Sprintf("Bearer %s", token))
+
+	log.Println("THIS IS BROADCAST")
+
 	_, err = client.BroadCast(ctx)
 	assert.NoError(t, err)
 
