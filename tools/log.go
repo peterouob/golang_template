@@ -12,6 +12,8 @@ var logg *zap.Logger
 func InitLogger() {
 	cfg := zap.NewProductionEncoderConfig()
 	cfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	cfg.EncodeLevel = zapcore.CapitalLevelEncoder
+	cfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	encoder := zapcore.NewConsoleEncoder(cfg)
 	//
 	//logFile := getLogFile()
@@ -51,6 +53,10 @@ func Log(msg interface{}) {
 
 func Logf(format string, args ...interface{}) {
 	getLogger().Info(fmt.Sprintf(format, args...))
+}
+
+func Warn(msg interface{}) {
+	getLogger().Warn(msg.(string))
 }
 
 func Error(msg string, err error, fields ...zap.Field) {
