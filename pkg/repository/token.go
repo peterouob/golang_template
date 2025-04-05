@@ -15,12 +15,7 @@ type TokenRepo struct {
 
 var tokenRepo *TokenRepo
 
-func GetTokenRepo() *TokenRepo {
-	return tokenRepo
-}
-
 func NewTokenRepo(rdb *redis.Client) *TokenRepo {
-	tools.Log("new token repo ...")
 	t := &TokenRepo{rdb: rdb}
 	tokenRepo = t
 	return t

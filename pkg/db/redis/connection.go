@@ -17,7 +17,6 @@ func InitRedis() *redis.Client {
 		PoolSize:        10,
 	})
 	status := rdb.Ping(context.Background())
-	tools.Log(status.String())
 	tools.HandelError("error in ping redis", status.Err())
 	return rdb
 }

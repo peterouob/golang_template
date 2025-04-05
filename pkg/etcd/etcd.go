@@ -15,15 +15,17 @@ type EtcdRegister struct {
 }
 
 func NewEtcdRegister(endpoints []string, heart int64) *EtcdRegister {
-	return &EtcdRegister{
-		client: etcdservice.RegisterETCD(endpoints, heart),
+	c := etcdservice.RegisterETCD(endpoints, heart)
+	e := &EtcdRegister{
+		client: c,
 		heart:  heart,
 	}
+	return e
 }
 
 func (e *EtcdRegister) Register(serviceName, addr string) {
 	e.leaseId = e.client.Register(serviceName, addr, 0)
-	tools.Log(fmt.Sprintf("Registered service %s at %s", serviceName, addr))
+	//tools.Log(fmt.Sprintf("Registered service %s at %s", serviceName, addr))
 	go func() {
 		for {
 			e.client.Register(serviceName, addr, e.leaseId)

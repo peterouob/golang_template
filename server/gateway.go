@@ -49,7 +49,7 @@ func (gw *GatewayConfig) StartGateway(wg *sync.WaitGroup) {
 	if err := pb.RegisterUserHandlerClient(ctx, mux, conn); err != nil {
 		tools.ErrorMsg(fmt.Sprintf("Failed to register handler for %s: %v", gw.ServiceName, err))
 	} else {
-		tools.Logf("Successfully registered handler for %s", gw.ServiceName)
+		//tools.Logf("Successfully registered handler for %s", gw.ServiceName)
 	}
 
 	handler := tools.Cors(mux)

@@ -51,7 +51,6 @@ func newLoginService() *UserServiceSever {
 		s := user.NewLoginServer()
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
-		tools.Log("register login service success")
 	})
 }
 
@@ -60,7 +59,6 @@ func newJwtService() *UserServiceSever {
 		s := user.NewTokenTestServer()
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
-		tools.Log("register jwt test service success")
 	}, interceptors.TokenInterceptors())
 }
 
@@ -69,7 +67,6 @@ func newAuthService() *UserServiceSever {
 		s := user.NewTokenValidServer()
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
-		tools.Log("register token valid service success")
 	})
 }
 
@@ -78,6 +75,5 @@ func newRegisterService() *UserServiceSever {
 		s := user.NewRegisterServer()
 		protobuf.RegisterUserServer(server, s)
 		reflection.Register(server)
-		tools.Log("register user register service success")
 	})
 }

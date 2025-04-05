@@ -22,16 +22,28 @@ var (
 	hubOnce    sync.Once
 )
 
+// Register TODO:服務連線失敗降級並等待etcd重新註冊上
 func RegisterETCD(etcdServers []string, heartbeat int64) *EtcdService {
-	tools.Log("Starting etcd servers...")
 	hubOnce.Do(func() {
+	start:
 		if serviceHub == nil {
 			client, err := clientv3.New(clientv3.Config{
 				Endpoints:   etcdServers,
 				DialTimeout: 5 * time.Second,
 			})
-			tools.HandelError("new etcd client error", err)
+
+			if err != nil {
+				time.Sleep(5 * time.Second)
+				tools.Log("wait for etcd servers to be ready...")
+				goto start
+			}
+
 			serviceHub = &EtcdService{client: client, heartbeat: heartbeat}
+		} else {
+			serviceHub = &EtcdService{
+				client:    serviceHub.client,
+				heartbeat: heartbeat,
+			}
 		}
 	})
 

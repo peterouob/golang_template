@@ -18,7 +18,6 @@ func NewUserRepo(db *gorm.DB) *UserRepo {
 		tools.ErrorMsg("DB connection is nil")
 		return nil
 	}
-	tools.Log("New user repo ...")
 	u := &UserRepo{
 		mdb: db,
 	}
@@ -34,7 +33,7 @@ func (userRepo *UserRepo) CreateUser(user mdb.UserModel) bool {
 	var count int64
 	userRepo.mdb.Model(&mdb.UserModel{}).Where("email = ?", user.Email).Count(&count)
 	if count > 0 {
-		tools.Log("user already exists")
+		tools.ErrorMsg("user already exists")
 		return false
 	}
 	tx := userRepo.mdb.Begin()

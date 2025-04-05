@@ -47,6 +47,5 @@ func newBroadcast() *IMServiceServer {
 		s := im.NewBroadCastServer()
 		protobuf.RegisterChatServer(server, s)
 		reflection.Register(server)
-		tools.Log("register broad cast service success")
 	}, nil)
 }

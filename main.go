@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/gin-gonic/gin"
 	"github.com/peterouob/golang_template/configs"
 	mdb "github.com/peterouob/golang_template/pkg/db/mysql"
 	rdb "github.com/peterouob/golang_template/pkg/db/redis"
@@ -30,12 +31,10 @@ func init() {
 func main() {
 	flag.Parse()
 	go func() {
-		http.Handle("/", promhttp.Handler())
-		log.Fatal(http.ListenAndServe(":9092", nil))
-	}()
-	go func() {
 		repository.NewUserRepo(mysqldb)
 		repository.NewTokenRepo(redisdb)
+		http.Handle("/", promhttp.Handler())
+		log.Fatal(http.ListenAndServe(":9092", nil))
 	}()
 
 	servers := []server.GrpcServer{
@@ -56,6 +55,10 @@ func main() {
 	}
 	tools.Log("All gRPC services started. Starting gRPC Gateway...")
 
+	r := gin.Default()
+	if err := r.Run(":9093"); err != nil {
+		tools.Error("error in open gin server", err)
+	}
 	//var wg sync.WaitGroup
 	//gateways := []*server.GatewayConfig{
 	//	server.NewGatewayConfig("login", 30001),
