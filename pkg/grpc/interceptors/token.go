@@ -4,10 +4,10 @@ import (
 	"context"
 	"github.com/peterouob/golang_template/api/protobuf"
 	"github.com/peterouob/golang_template/configs"
-	grpcclient "github.com/peterouob/golang_template/pkg/grpc/client"
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"strings"
@@ -37,10 +37,12 @@ func TokenInterceptors() grpc.UnaryServerInterceptor {
 		tokenString, err := extractToken(md)
 		tools.HandelError("error in interceptor", err)
 
-		c, err := grpcclient.GetGRPCClient(cfg, "auth")
-		tools.HandelError("error in interceptor for get grpc client", err)
-
-		res, err := c.(protobuf.UserClient).TokenValid(ctx, &protobuf.TokenValidRequest{
+		conn, err := grpc.NewClient(":8083", grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			tools.Error("error in grpc Client", err)
+		}
+		c := protobuf.NewUserClient(conn)
+		res, err := c.TokenValid(ctx, &protobuf.TokenValidRequest{
 			Token: tokenString,
 		})
 		if err != nil || !res.Valid {

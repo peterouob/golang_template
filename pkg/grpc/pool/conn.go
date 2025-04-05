@@ -1,46 +1,40 @@
-package grpcpool
+package pool
 
 import (
-	"fmt"
-	"github.com/peterouob/golang_template/configs"
-	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
-	"time"
+	"sync/atomic"
 )
 
-type poolConn struct {
-	conn     *grpc.ClientConn
-	dealTime time.Time
+type Conn interface {
+	Value() *grpc.ClientConn
+	Close() error
 }
 
-func (pc *poolConn) Refresh(cfg configs.ClientConfig, opts ...grpc.DialOption) {
-	if pc == nil {
-		return
-	}
-	if pc.conn != nil {
-		pc.conn.Close()
-	}
-	conn, err := grpc.NewClient(cfg.ServerAddr, opts...)
-	tools.HandelError(fmt.Sprintf("connect to %s failed", cfg.ServerAddr), err)
-	pc.conn = conn
-	pc.dealTime = time.Now().Add(cfg.GetLifeTime())
+type conn struct {
+	cc    *grpc.ClientConn
+	pool  *pool
+	once  bool
+	count atomic.Int32
 }
 
-func (pc *poolConn) ShouldRefresh() bool {
-	if pc.conn == nil {
-		tools.Log("refresh connection because conn is nil!")
-		return true
-	}
+func (c *conn) Value() *grpc.ClientConn {
+	return c.cc
+}
 
-	if !isConnectionHealthy(pc.conn) {
-		tools.Log("refresh connection because healthy!")
-		return true
+func (c *conn) Close() error {
+	c.pool.decRef()
+	if c.once {
+		return c.reset()
 	}
+	return nil
+}
 
-	if time.Now().After(pc.dealTime) {
-		tools.Log("refresh connection because dealTime!")
-		return true
+func (c *conn) reset() error {
+	cc := c.cc
+	c.cc = nil
+	c.once = false
+	if cc != nil {
+		return cc.Close()
 	}
-
-	return false
+	return nil
 }

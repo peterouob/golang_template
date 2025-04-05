@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"github.com/peterouob/golang_template/api/protobuf"
-	grpcclient "github.com/peterouob/golang_template/pkg/grpc/client"
 	"github.com/peterouob/golang_template/tools"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"time"
@@ -45,8 +45,11 @@ func TokenStreamInterceptor(srv any, ss grpc.ServerStream, _ *grpc.StreamServerI
 		return status.Error(codes.InvalidArgument, "missing metadata")
 	}
 	tokenString, err := extractToken(md)
-	c, err := grpcclient.GetGRPCClient(cfg, "auth")
-	tools.HandelError("error in interceptor for get grpc client", err)
+	conn, err := grpc.NewClient(":8083", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		tools.Error("error in grpc Client", err)
+	}
+	c := protobuf.NewUserClient(conn)
 
 	tctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
