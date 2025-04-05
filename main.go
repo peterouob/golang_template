@@ -53,7 +53,6 @@ func main() {
 	for _, ch := range readies {
 		<-ch
 	}
-	tools.Log("All gRPC services started. Starting gRPC Gateway...")
 
 	r := gin.Default()
 	if err := r.Run(":9093"); err != nil {
