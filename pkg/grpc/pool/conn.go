@@ -17,6 +17,8 @@ type conn struct {
 	count atomic.Int32
 }
 
+var _ Conn = (*conn)(nil)
+
 func (c *conn) Value() *grpc.ClientConn {
 	return c.cc
 }

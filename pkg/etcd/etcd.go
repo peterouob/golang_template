@@ -3,7 +3,7 @@ package etcdregister
 import (
 	"fmt"
 	etcdservice "github.com/peterouob/golang_template/pkg/etcd/server"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"time"
 )
@@ -36,5 +36,5 @@ func (e *EtcdRegister) Register(serviceName, addr string) {
 
 func (e *EtcdRegister) UnRegister(serviceName, addr string) {
 	e.client.UnRegister(serviceName, addr)
-	tools.Log(fmt.Sprintf("unregiter service: %s from etcd, addr: %s", serviceName, addr))
+	utils.Log(fmt.Sprintf("unregiter service: %s from etcd, addr: %s", serviceName, addr))
 }

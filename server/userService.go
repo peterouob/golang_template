@@ -4,7 +4,7 @@ import (
 	"github.com/peterouob/golang_template/api/protobuf"
 	"github.com/peterouob/golang_template/pkg/grpc/interceptors"
 	"github.com/peterouob/golang_template/pkg/grpc/server/user"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -23,7 +23,7 @@ var userService = map[string]func() *UserServiceSever{
 func RegisterUserService(serviceName string) *UserServiceSever {
 	u, ok := userService[serviceName]
 	if !ok {
-		tools.ErrorMsgF("error in not found service name %s", serviceName)
+		utils.ErrorMsgF("error in not found service name %s", serviceName)
 	}
 	return u()
 }

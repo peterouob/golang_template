@@ -3,7 +3,7 @@ package rdb
 import (
 	"context"
 	"github.com/peterouob/golang_template/configs"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	"github.com/redis/go-redis/v9"
 	"time"
 )
@@ -17,6 +17,6 @@ func InitRedis() *redis.Client {
 		PoolSize:        10,
 	})
 	status := rdb.Ping(context.Background())
-	tools.HandelError("error in ping redis", status.Err())
+	utils.HandelError("error in ping redis", status.Err())
 	return rdb
 }

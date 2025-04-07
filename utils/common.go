@@ -1,4 +1,4 @@
-package tools
+package utils
 
 import (
 	"errors"
@@ -53,9 +53,9 @@ func CheckStructNil(value interface{}) bool {
 	return true
 }
 
-func FormatAddr(port int) string {
+func FormatIP(port string) string {
 	localP := GetLocalIP()
-	return fmt.Sprintf("%s:%d", localP, port)
+	return fmt.Sprintf("%s:%s", localP, port)
 }
 
 func Cors(next http.Handler) http.Handler {

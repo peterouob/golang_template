@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"github.com/peterouob/golang_template/api/protobuf"
 	"github.com/peterouob/golang_template/configs"
 	mdb "github.com/peterouob/golang_template/pkg/db/mysql"
@@ -11,7 +10,7 @@ import (
 )
 
 func LoginUserGrpc(addr string, c context.Context, model mdb.UserModel) *protobuf.LoginUserResponse {
-	p := pool.New(fmt.Sprintf("192.168.0.100:%s", addr), configs.DefaultOption)
+	p := pool.New(utils.FormatIP(addr), configs.DefaultOption)
 	conn, err := p.Get()
 	if err != nil {
 		utils.Error("get conn from pool error", err)
@@ -29,7 +28,7 @@ func LoginUserGrpc(addr string, c context.Context, model mdb.UserModel) *protobu
 }
 
 func RegisterUser(addr string, c context.Context, model mdb.UserModel) *protobuf.RegisterUserResponse {
-	p := pool.New(fmt.Sprintf("192.168.0.100:%s", addr), configs.DefaultOption)
+	p := pool.New(utils.FormatIP(addr), configs.DefaultOption)
 	conn, err := p.Get()
 	if err != nil {
 		utils.Error("get conn from pool error", err)

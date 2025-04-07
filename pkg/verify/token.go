@@ -7,7 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/peterouob/golang_template/configs"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	"sync/atomic"
 	"time"
 )
@@ -18,6 +18,11 @@ var (
 	RefreshKey atomic.Value
 )
 
+type TokenInterface interface {
+	CreateToken()
+	CreateRefreshToken()
+}
+
 type Token struct {
 	UserId       int64         `json:"user_id"`
 	AccessId     string        `json:"access_id"`
@@ -26,6 +31,8 @@ type Token struct {
 	RefreshToken string        `json:"refresh_token"`
 	Token        configs.Token `json:"token"`
 }
+
+var _ TokenInterface = (*Token)(nil)
 
 func NewToken(id int64) *Token {
 	TokenKey.Store(configs.Config.GetString("token.token_key"))
@@ -54,7 +61,7 @@ func (t *Token) CreateToken() {
 
 	tk := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t.AccessToken, err = tk.SignedString([]byte(TokenKey.Load().(string)))
-	tools.HandelError("create token error", err)
+	utils.HandelError("create token error", err)
 	t.AccessId = claims["access_id"].(string)
 }
 
@@ -70,28 +77,28 @@ func (t *Token) CreateRefreshToken() {
 	}
 	tk := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t.RefreshToken, err = tk.SignedString([]byte(fmt.Sprintf("%s%d", RefreshKey.Load().(string), t.UserId)))
-	tools.HandelError("create refresh token error", err)
+	utils.HandelError("create refresh token error", err)
 	t.RefreshId = claims["refresh_id"].(string)
 }
 
 func VerifyToken(tokenString string) *jwt.Token {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			tools.HandelError("parse token error type", err)
+			utils.HandelError("parse token error type", err)
 		}
 		return []byte(TokenKey.Load().(string)), nil
 	})
-	tools.HandelError("parse token error", err)
+	utils.HandelError("parse token error", err)
 	// TODO:count the fail and report to prometheus count
 	switch {
 	case token.Valid:
-		tools.Log("valid success token")
+		utils.Log("valid success token")
 	case errors.Is(err, jwt.ErrTokenMalformed):
-		tools.Log("error in Malformed token type")
+		utils.Log("error in Malformed token type")
 	case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet):
-		tools.Log("error in token expired")
+		utils.Log("error in token expired")
 	default:
-		tools.HandelError("couldn't handle this token", err)
+		utils.HandelError("couldn't handle this token", err)
 	}
 	return token
 }

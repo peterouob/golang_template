@@ -31,6 +31,8 @@ type pool struct {
 	sync.RWMutex
 }
 
+var _ Pool = (*pool)(nil)
+
 func New(addr string, opt configs.Option) Pool {
 	p := &pool{
 		opt:       opt,

@@ -6,14 +6,14 @@ import (
 	"github.com/peterouob/golang_template/api/protobuf"
 	"github.com/peterouob/golang_template/configs"
 	grpcclient "github.com/peterouob/golang_template/pkg/grpc/client"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
 	"testing"
 )
 
 func init() {
-	tools.InitLogger()
+	utils.InitLogger()
 }
 
 func TestEchoEtcd(t *testing.T) {

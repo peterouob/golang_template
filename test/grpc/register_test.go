@@ -10,7 +10,7 @@ import (
 )
 
 func TestRegister(t *testing.T) {
-	conn, err := grpc.NewClient("192.168.0.100:8085",
+	conn, err := grpc.NewClient("0.0.0.0:8085",
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	assert.Nil(t, err)
 	defer func() {

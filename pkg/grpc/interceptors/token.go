@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/peterouob/golang_template/api/protobuf"
 	"github.com/peterouob/golang_template/configs"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -29,24 +29,24 @@ func TokenInterceptors() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		tools.Log("start unary interceptor for token valid ...")
+		utils.Log("start unary interceptor for token valid ...")
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return nil, status.Errorf(codes.InvalidArgument, "missing metadata")
 		}
 		tokenString, err := extractToken(md)
-		tools.HandelError("error in interceptor", err)
+		utils.HandelError("error in interceptor", err)
 
 		conn, err := grpc.NewClient(":8083", grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
-			tools.Error("error in grpc Client", err)
+			utils.Error("error in grpc Client", err)
 		}
 		c := protobuf.NewUserClient(conn)
 		res, err := c.TokenValid(ctx, &protobuf.TokenValidRequest{
 			Token: tokenString,
 		})
 		if err != nil || !res.Valid {
-			tools.HandelError("error in interceptor for valid token", err)
+			utils.HandelError("error in interceptor for valid token", err)
 		}
 
 		ctx = context.WithValue(ctx, "uid", res.Id)

@@ -2,7 +2,7 @@ package im
 
 import (
 	"github.com/peterouob/golang_template/api/protobuf"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
@@ -29,7 +29,7 @@ func NewBroadCastServer() *BroadCastServer {
 }
 
 func (b *BroadCastServer) BroadCast(srv protobuf.Chat_BroadCastServer) error {
-	tools.Log("Hello this is BroadCast")
+	utils.Log("Hello this is BroadCast")
 	ctx := srv.Context()
 	id := ctx.Value("id")
 	log.Println(id)
@@ -59,9 +59,9 @@ func (b *BroadCastServer) sendBroadcast(srv protobuf.Chat_BroadCastServer, token
 				//log.Println(s.Message())
 				case codes.OK:
 				case codes.Unavailable, codes.Canceled, codes.DeadlineExceeded:
-					tools.ErrorMsgF("client (%s) terminated connection", token)
+					utils.ErrorMsgF("client (%s) terminated connection", token)
 				default:
-					tools.ErrorMsgF("failed to send to client (%s): %v", token, s.Err())
+					utils.ErrorMsgF("failed to send to client (%s): %v", token, s.Err())
 				}
 			}
 		}

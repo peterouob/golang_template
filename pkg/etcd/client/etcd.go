@@ -3,7 +3,7 @@ package clientclient
 import (
 	"context"
 	"fmt"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"strings"
 	"sync"
@@ -28,7 +28,7 @@ func GetService(etcdAddr []string) *ServiceHub {
 				Endpoints:   etcdAddr,
 				DialTimeout: 5 * time.Second,
 			})
-			tools.HandelError("new etcd client error", err)
+			utils.HandelError("new etcd client error", err)
 			serviceHub = &ServiceHub{
 				client:        client,
 				endPointCache: sync.Map{},
@@ -47,13 +47,13 @@ func (s *ServiceHub) getServiceEndpoint(service string) []string {
 		service)
 
 	resp, err := s.client.Get(ctx, prefix, clientv3.WithPrefix())
-	tools.HandelError("get etcd service endpoint error", err)
+	utils.HandelError("get etcd service endpoint error", err)
 	endpoints := make([]string, 0, len(resp.Kvs))
 	for _, kv := range resp.Kvs {
 		path := strings.Split(string(kv.Key), "/")
 		endpoints = append(endpoints, path[len(path)-1])
 	}
-	tools.Log(fmt.Sprintf("get %s etcd service endpoints: %v\n", service, endpoints))
+	utils.Log(fmt.Sprintf("get %s etcd service endpoints: %v\n", service, endpoints))
 	return endpoints
 }
 
@@ -66,7 +66,7 @@ func (s *ServiceHub) watchEndpoint(service string) {
 		strings.TrimRight("/service/grpc", "/"),
 		service)
 	ch := s.client.Watch(ctx, prefix, clientv3.WithPrefix())
-	tools.Log(fmt.Sprintf("watching %s node change ...", service))
+	utils.Log(fmt.Sprintf("watching %s node change ...", service))
 	go func() {
 		for resp := range ch {
 			for _, event := range resp.Events {

@@ -46,9 +46,11 @@ message TokenValidRequest {
   string token = 1;
 }
 
+
+//TODO: change id type from int64 -> uint64
 message TokenValidResponse {
   bool valid = 1;
-  int64 Id = 2;
+  uint64 Id = 2;
   string msg =3;
 }
 

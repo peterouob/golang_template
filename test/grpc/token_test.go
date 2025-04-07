@@ -9,28 +9,26 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"testing"
-	"time"
 )
 
 func TestLoginServer(t *testing.T) {
-	for {
-		conn, err := grpc.NewClient("192.168.0.100:8082", grpc.WithTransportCredentials(insecure.NewCredentials()))
-		assert.NoError(t, err)
-
-		c := protobuf.NewUserClient(conn)
-		ctx := context.Background()
-		r, err := c.LoginUser(ctx, &protobuf.LoginUserRequest{
-			Email:    "admin",
-			Password: "123456",
-		})
-		assert.NoError(t, err)
-		t.Logf("Access Token :%s", r.AccessToken)
-		t.Logf("Refresh Token :%s", r.RefreshToken)
-		testToken(t, r.AccessToken)
-		time.Sleep(1 * time.Second)
-	}
-	//testBroadCast(t, r.AccessToken)
+	conn, err := grpc.NewClient("192.168.0.100:8082", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.NoError(t, err)
+	c := protobuf.NewUserClient(conn)
+	assert.NotNil(t, c)
+	ctx := context.Background()
+	r, err := c.LoginUser(ctx, &protobuf.LoginUserRequest{
+		Email:    "123",
+		Password: "123",
+	})
+	assert.NoError(t, err)
+	t.Logf("Access Token :%s", r.AccessToken)
+	t.Logf("Refresh Token :%s", r.RefreshToken)
+	//testToken(t, r.AccessToken)
+	//time.Sleep(1 * time.Second)
 }
+
+//testBroadCast(t, r.AccessToken)
 
 func testToken(t *testing.T, token string) {
 	conn, err := grpc.NewClient("192.168.0.100:8083", grpc.WithTransportCredentials(insecure.NewCredentials()))

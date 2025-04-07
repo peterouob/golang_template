@@ -2,7 +2,7 @@ package configs
 
 import (
 	"errors"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
@@ -14,7 +14,7 @@ var Config *viper.Viper
 func InitViper() {
 	config := viper.New()
 	wd, err := os.Getwd()
-	tools.HandelError("error in os.Getwd()", err)
+	utils.HandelError("error in os.Getwd()", err)
 
 	rootDir := findRoot(wd)
 	config.AddConfigPath(rootDir)
@@ -23,7 +23,7 @@ func InitViper() {
 	config.AutomaticEnv()
 	config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	err = config.ReadInConfig()
-	tools.HandelError("error in config.()", err)
+	utils.HandelError("error in config.()", err)
 	Config = config
 }
 
@@ -39,6 +39,6 @@ func findRoot(path string) string {
 		}
 		dir = parent
 	}
-	tools.HandelError("error in findRoot", errors.New("config.yaml not found in any parent directories"))
+	utils.HandelError("error in findRoot", errors.New("config.yaml not found in any parent directories"))
 	return ""
 }

@@ -2,11 +2,10 @@ package user
 
 import (
 	"context"
-	"github.com/bwmarrin/snowflake"
 	"github.com/peterouob/golang_template/api/protobuf"
 	mdb "github.com/peterouob/golang_template/pkg/db/mysql"
 	"github.com/peterouob/golang_template/pkg/repository"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"strconv"
@@ -21,11 +20,10 @@ func NewRegisterServer() *RegisterServer {
 }
 
 func (r RegisterServer) RegisterUser(ctx context.Context, in *protobuf.RegisterUserRequest) (*protobuf.RegisterUserResponse, error) {
-	node, err := snowflake.NewNode(1)
-	tools.HandelError("error in snowflake new node", err)
-	uid := node.Generate().Int64()
-	id, err := strconv.ParseInt(strconv.FormatInt(uid, 10), 10, 64)
-	tools.HandelError("convert string to int64 error", err)
+	node := utils.NewIdWorker(10)
+	uid := node.GenID()
+	id, err := strconv.ParseInt(strconv.FormatInt(int64(uid), 10), 10, 64)
+	utils.HandelError("convert string to int64 error", err)
 	user := &mdb.UserModel{
 		Name:     in.GetName(),
 		Email:    in.GetEmail(),

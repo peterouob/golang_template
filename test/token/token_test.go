@@ -5,7 +5,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/peterouob/golang_template/configs"
 	"github.com/peterouob/golang_template/pkg/verify"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -18,7 +18,7 @@ var (
 )
 
 func setup() {
-	tools.InitLogger()
+	utils.InitLogger()
 	configs.InitViper()
 	userId = 123
 	fmt.Printf("\033[1;33m%s\033[0m", "> Setup completed\n")

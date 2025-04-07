@@ -5,18 +5,22 @@ import (
 	etcdregister "github.com/peterouob/golang_template/pkg/etcd"
 	in "github.com/peterouob/golang_template/pkg/grpc/interceptors"
 	promsever "github.com/peterouob/golang_template/pkg/prometheus"
-	"github.com/peterouob/golang_template/tools"
+	"github.com/peterouob/golang_template/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"net"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
 type GrpcServer interface {
-	InitServer(port int) <-chan struct{}
+	InitServer(port string) <-chan struct{}
+}
+
+type BaseServerInterface interface {
+	RegisterUnInterceptors(interceptors ...grpc.UnaryServerInterceptor)
+	RegisterStreamInterceptors(interceptors ...grpc.StreamServerInterceptor)
+	registerInterceptors() (opts []grpc.ServerOption)
+	InitServer(port string) <-chan struct{}
 }
 
 type BaseServer struct {
@@ -24,9 +28,10 @@ type BaseServer struct {
 	RegisterFunc       func(*grpc.Server)
 	interceptors       []grpc.UnaryServerInterceptor
 	streamInterceptors []grpc.StreamServerInterceptor
-
-	etcdClient *etcdregister.EtcdRegister
+	etcdClient         *etcdregister.EtcdRegister
 }
+
+var _ BaseServerInterface = (*BaseServer)(nil)
 
 func (b *BaseServer) RegisterUnInterceptors(interceptors ...grpc.UnaryServerInterceptor) {
 	b.interceptors = append(b.interceptors, interceptors...)
@@ -46,13 +51,13 @@ func (b *BaseServer) registerInterceptors() (opts []grpc.ServerOption) {
 	return
 }
 
-func (b *BaseServer) InitServer(port int) <-chan struct{} {
-	tools.Log(fmt.Sprintf("Starting gRPC server [%s] on port %d ...", b.ServiceName, port))
+func (b *BaseServer) InitServer(port string) <-chan struct{} {
+	utils.Log(fmt.Sprintf("Starting gRPC server [%s] on port %s ...", b.ServiceName, port))
 	ready := make(chan struct{})
-	addr := tools.FormatAddr(port)
+	addr := utils.FormatIP(port)
 	go func() {
 		lis, err := net.Listen("tcp", addr)
-		tools.HandelError("error in listen addr", err)
+		utils.HandelError("error in listen addr", err)
 
 		m := promsever.InitPrometheus()
 		b.RegisterUnInterceptors(in.PromInterceptor(m))
@@ -72,40 +77,38 @@ func (b *BaseServer) InitServer(port int) <-chan struct{} {
 		s := grpc.NewServer(opts...)
 
 		if b.RegisterFunc == nil {
-			tools.ErrorMsg("have not fund the register service")
+			utils.ErrorMsg("have not fund the register service")
 		}
 
 		b.RegisterFunc(s)
 
-		etcd := etcdregister.NewEtcdRegister([]string{"127.0.0.1:2379"}, 3)
-		etcd.Register(b.ServiceName, addr)
+		//TODO:Rebuild Etcd service
+		//etcd := etcdregister.NewEtcdRegister([]string{"127.0.0.1:2379"}, 3)
+		//etcd.Register(b.ServiceName, addr)
 
 		close(ready)
 		err = s.Serve(lis)
-		b.listenExit(addr, s)
-		tools.HandelError("start grpc server error", err,
-			func(args ...interface{}) {
-				etcd.UnRegister(b.ServiceName, addr)
-			})
+		//b.listenExit(addr, s)
+		utils.Error("error in start grpc server", err)
 	}()
 	return ready
 }
 
-func (b *BaseServer) listenExit(addr string, s *grpc.Server) {
-	go func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-		sig := <-c
-		tools.Log(fmt.Sprintf("receive a signal %s", sig.String()))
-		s.GracefulStop()
-		b.cleanup(addr)
-	}()
-}
-
-func (b *BaseServer) cleanup(addr string) {
-	if b.etcdClient != nil {
-		b.etcdClient.UnRegister(b.ServiceName, addr)
-		tools.Log("Etcd unregistered successfully.")
-	}
-	tools.Log("Server shutdown finished.")
-}
+//func (b *BaseServer) listenExit(addr string, s *grpc.Server) {
+//	go func() {
+//		c := make(chan os.Signal, 1)
+//		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+//		sig := <-c
+//		utils.Log(fmt.Sprintf("receive a signal %s", sig.String()))
+//		s.GracefulStop()
+//		b.cleanup(addr)
+//	}()
+//}
+//
+//func (b *BaseServer) cleanup(addr string) {
+//	if b.etcdClient != nil {
+//		b.etcdClient.UnRegister(b.ServiceName, addr)
+//		utils.Log("Etcd unregistered successfully.")
+//	}
+//	utils.Log("Server shutdown finished.")
+//}
