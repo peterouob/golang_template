@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"github.com/gin-gonic/gin"
 	"github.com/peterouob/golang_template/api/router"
 	"github.com/peterouob/golang_template/configs"
@@ -11,33 +10,27 @@ import (
 	"github.com/peterouob/golang_template/server"
 	"github.com/peterouob/golang_template/utils"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 	"log"
 	"net/http"
-)
-
-var (
-	mysqldb *gorm.DB
-	redisdb *redis.Client
+	"sync"
 )
 
 func init() {
 	utils.InitLogger()
 	configs.InitViper()
-	mysqldb = mdb.InitMysql()
-	redisdb = rdb.InitRedis()
+	mysqldb := mdb.InitMysql()
+	redisdb := rdb.InitRedis()
+	repository.NewUserRepo(mysqldb)
+	repository.NewTokenRepo(redisdb)
 }
 
 func main() {
-	flag.Parse()
-	go func() {
-		repository.NewUserRepo(mysqldb)
-		repository.NewTokenRepo(redisdb)
-		http.Handle("/", promhttp.Handler())
-		log.Fatal(http.ListenAndServe(":9092", nil))
-	}()
+	go startPrometheus()
+	startRpcServer()
+	startRouter()
+}
 
+func startRpcServer() {
 	servers := []server.GrpcServer{
 		server.RegisterUserService("login"),
 		server.RegisterUserService("token"),
@@ -47,18 +40,24 @@ func main() {
 	}
 	ports := []string{"8082", "8083", "8084", "8085", "7082"}
 
-	readies := make([]<-chan struct{}, len(servers))
+	wg := sync.WaitGroup{}
+	wg.Add(len(servers))
 	for i, s := range servers {
-		readies[i] = s.InitServer(ports[i])
+		s.InitServer(ports[i])
+		wg.Done()
 	}
-	for _, ch := range readies {
-		<-ch
-	}
+	wg.Wait()
+}
 
+func startRouter() {
 	r := gin.Default()
 	router.InitRouter(r)
 	if err := r.Run(":9093"); err != nil {
 		utils.Error("error in open gin server", err)
 	}
-	//select {}
+}
+
+func startPrometheus() {
+	http.Handle("/", promhttp.Handler())
+	log.Fatal(http.ListenAndServe(":9092", nil))
 }
