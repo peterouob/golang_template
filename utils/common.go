@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"log"
 	"net"
@@ -58,7 +59,7 @@ func FormatIP(port string) string {
 	return fmt.Sprintf("%s:%s", localP, port)
 }
 
-func Cors(next http.Handler) http.Handler {
+func Cors(c *gin.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
@@ -68,7 +69,7 @@ func Cors(next http.Handler) http.Handler {
 			return
 		}
 		log.Printf("Gateway received: method=%s, url=%s, content-length=%d", r.Method, r.URL, r.ContentLength)
-		next.ServeHTTP(w, r)
+		c.Next()
 	})
 }
 
