@@ -2,15 +2,6 @@ syntax = "proto3";
 
 option go_package = "../protobuf";
 
-import "annotations.proto";
-
-message EchoRequest {
-  string name = 1;
-}
-
-message EchoResponse {
-  string name = 1;
-}
 
 message RegisterUserRequest {
   int64  Id = 1;
@@ -61,42 +52,12 @@ message NotFoundResponse {
 }
 
 service NotFound {
-  rpc NotFound(NotFoundRequest) returns (NotFoundResponse) {
-    option (google.api.http) = {
-      get: "/v1/not_found"
-    };
-  }
+  rpc NotFound(NotFoundRequest) returns (NotFoundResponse) {}
 }
-
-service Echo {
-  rpc Echo(EchoRequest) returns (EchoResponse){
-    option (google.api.http) = {
-      post: "/v1/echo"
-      body: "*"
-    };
-  }
-}
-
-
 
 service User {
-  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {
-    option (google.api.http) = {
-      post: "/v1/user/register"
-      body: "*"
-    };
-  }
-  rpc LoginUser(LoginUserRequest) returns (LoginUserResponse) {
-    option (google.api.http) = {
-      post: "/v1/user/login"
-      body: "*"
-    };
-  }
-  rpc TokenTest(TokenTestRequest) returns (TokenTestResponse) {
-    option (google.api.http) = {
-      post: "/v1/user/tokenTest"
-      body: "*"
-    };
-  }
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {};
+  rpc LoginUser(LoginUserRequest) returns (LoginUserResponse) {};
+  rpc TokenTest(TokenTestRequest) returns (TokenTestResponse) {};
   rpc TokenValid(TokenValidRequest) returns (TokenValidResponse) {};
 }
