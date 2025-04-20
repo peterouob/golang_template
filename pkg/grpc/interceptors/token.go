@@ -25,10 +25,10 @@ func init() {
 func TokenInterceptors() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
-		req interface{},
+		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+	) (any, error) {
 		utils.Log("start unary interceptor for token valid ...")
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {

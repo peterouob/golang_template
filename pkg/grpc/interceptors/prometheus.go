@@ -11,10 +11,10 @@ import (
 
 func PromInterceptor(metrics *promsever.Metrics) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context,
-		req interface{},
+		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+	) (any, error) {
 		s, m := parseInfo(info.FullMethod)
 		start := time.Now()
 		resp, err := handler(ctx, req)

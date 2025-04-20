@@ -1,0 +1,3 @@
+# 讓golang程式modern化
+modern:
+	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -test ./...

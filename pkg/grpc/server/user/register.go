@@ -19,7 +19,7 @@ func NewRegisterServer() *RegisterServer {
 	return &RegisterServer{}
 }
 
-func (r RegisterServer) RegisterUser(ctx context.Context, in *protobuf.RegisterUserRequest) (*protobuf.RegisterUserResponse, error) {
+func (r RegisterServer) RegisterUser(_ context.Context, in *protobuf.RegisterUserRequest) (*protobuf.RegisterUserResponse, error) {
 	node := utils.NewIdWorker(10)
 	uid := node.GenID()
 	id, err := strconv.ParseInt(strconv.FormatInt(int64(uid), 10), 10, 64)

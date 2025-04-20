@@ -23,7 +23,7 @@ func NewTokenRepo(rdb *redis.Client) *TokenRepo {
 
 func (t *TokenRepo) SaveRefreshToken(ctx context.Context, userId, value string, exp int64) {
 	rttl := time.Until(time.Unix(exp, 0))
-	userData := map[string]interface{}{
+	userData := map[string]any{
 		"token":  value,
 		"exp":    exp,
 		"create": time.Now().Format("2006-01-02 15:04:05"),
@@ -42,11 +42,11 @@ func (t *TokenRepo) SaveRefreshToken(ctx context.Context, userId, value string, 
 func (t *TokenRepo) GetRefreshTokenData(
 	ctx context.Context,
 	userId string,
-) map[string]interface{} {
+) map[string]any {
 	redisKey := fmt.Sprintf("user_refresh:%s", userId)
 	dataBytes, err := t.rdb.HGet(ctx, redisKey, userId).Bytes()
 	utils.HandelError("redis store hget data fail", err)
-	var dataMap map[string]interface{}
+	var dataMap map[string]any
 	err = json.Unmarshal(dataBytes, &dataMap)
 	utils.HandelError("json unmarshal fail", err)
 	return dataMap

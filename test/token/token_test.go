@@ -49,8 +49,10 @@ func TestCreateToken(t *testing.T) {
 	token.CreateToken()
 	assert.NotEqual(t, token.AccessToken, "")
 
-	parse, err := jwt.Parse(token.AccessToken, func(token *jwt.Token) (interface{}, error) {
-		return []byte(fmt.Sprintf("%s", verify.TokenKey.Load().(string))), nil
+	parse, err := jwt.Parse(token.AccessToken, func(token *jwt.Token) (any, error) {
+		var t []byte
+		t = fmt.Appendf(t, fmt.Sprintf("%s", verify.TokenKey.Load().(string)))
+		return t, nil
 	})
 	claims := parse.Claims.(jwt.MapClaims)
 	t.Logf("parse: %v", claims["userId"])

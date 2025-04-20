@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"log"
 	"net"
 	"net/http"
-	"reflect"
 	"strings"
 )
 
@@ -36,43 +34,27 @@ func GetLocalIP() (ipv4 string) {
 	return
 }
 
-func CheckStructNil(value interface{}) bool {
-	v := reflect.ValueOf(value)
-
-	if v.Kind() != reflect.Struct {
-		return false
-	}
-	for i := 0; i < v.NumField(); i++ {
-		f := v.Field(i)
-		if f.Kind() != reflect.Ptr {
-			continue
-		}
-		if f.IsNil() {
-			return false
-		}
-	}
-	return true
-}
-
 func FormatIP(port string) string {
 	localP := GetLocalIP()
 	return fmt.Sprintf("%s:%s", localP, port)
 }
 
-func Cors(c *gin.Context) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		log.Printf("Gateway received: method=%s, url=%s, content-length=%d", r.Method, r.URL, r.ContentLength)
-		c.Next()
-	})
+func Cors(c *gin.Context) {
+	method := c.Request.Method
+	c.Header("Access-Control-Allow-Origin", c.GetHeader("Origin"))
+	fmt.Println(c.GetHeader("Origin"))
+	c.Header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
+	c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Token")
+	c.Header("Access-Control-Expose-Headers", "Access-Control-Allow-Headers, Token")
+	c.Header("Access-Control-Allow-Credentials", "true")
+	if method == "OPTIONS" {
+		c.AbortWithStatus(http.StatusNoContent)
+		return
+	}
+	c.Next()
 }
 
+// Matcher TODO:use in token test
 func Matcher(key string) (string, bool) {
 	switch strings.ToLower(key) {
 	case "authorization":

@@ -17,7 +17,7 @@ func NewTokenValidServer() *TokenValid {
 
 func (auth TokenValid) TokenValid(ctx context.Context, req *protobuf.TokenValidRequest) (*protobuf.TokenValidResponse, error) {
 	tokenString := req.GetToken()
-	token := verify.VerifyToken(tokenString)
+	token := verify.TokenVerify(tokenString)
 
 	if !token.Valid {
 		return &protobuf.TokenValidResponse{
@@ -36,7 +36,7 @@ func (auth TokenValid) TokenValid(ctx context.Context, req *protobuf.TokenValidR
 	userID := int64(claims["userId"].(float64))
 	return &protobuf.TokenValidResponse{
 		Valid: true,
-		Id:    userID,
+		Id:    uint64(userID),
 		Msg:   "Token is valid",
 	}, nil
 }

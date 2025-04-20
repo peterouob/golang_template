@@ -29,16 +29,16 @@ const (
 	MaxRecvMsgSize = 4 << 30
 )
 
-var MaxBackoffDelay grpc.ConnectParams = grpc.ConnectParams{
+var MaxBackoffDelay = grpc.ConnectParams{
 	Backoff:           backoff.Config{BaseDelay: 100 * time.Millisecond, MaxDelay: 10 * time.Second, Multiplier: 1.6, Jitter: 0.1},
 	MinConnectTimeout: 3 * time.Second,
 }
 
 type Option struct {
 	Dial                 func(addr string) (*grpc.ClientConn, error)
-	MaxIdle              int
-	MaxActive            int
-	MaxConcurrentStreams int
+	MaxIdle              int32
+	MaxActive            int32
+	MaxConcurrentStreams int32
 	Reuse                bool
 }
 

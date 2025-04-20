@@ -22,7 +22,7 @@ var (
 	hubOnce    sync.Once
 )
 
-// Register TODO:服務連線失敗降級並等待etcd重新註冊上
+// RegisterETCD TODO:服務連線失敗降級並等待etcd重新註冊上
 func RegisterETCD(etcdServers []string, heartbeat int64) *EtcdService {
 	hubOnce.Do(func() {
 	start:

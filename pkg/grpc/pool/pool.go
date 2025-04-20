@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/peterouob/golang_template/configs"
+	"github.com/peterouob/golang_template/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"log"
@@ -40,16 +41,17 @@ func New(addr string, opt configs.Option) Pool {
 		addr:      addr,
 		checkTime: time.Minute,
 	}
-	p.curr.Store(int32(opt.MaxActive))
+	p.curr.Store(opt.MaxActive)
 
-	for i := 0; i < opt.MaxIdle; i++ {
+	for i := range make([]struct{}, opt.MaxActive) {
 		c, err := opt.Dial(addr)
 		if err != nil {
 			panic(fmt.Sprintf("error in dial %s , %v", addr, err.Error()))
 		}
-		p.conns[i] = p.wrapconn(c, false)
+		p.conns[i] = p.wrapConn(c, false)
 	}
-	log.Printf("new pool success %v\n", p.Status())
+
+	utils.Logf("new pool success %v\n", p.Status())
 	p.checkHealthy()
 	return p
 }
@@ -66,41 +68,41 @@ func (p *pool) Get() (Conn, error) {
 		return nil, errors.New("pool closed")
 	}
 
-	if nextRef <= cur*int32(p.opt.MaxConcurrentStreams) {
+	if nextRef <= cur*p.opt.MaxConcurrentStreams {
 		next := p.index.Add(1) % uint32(cur)
 		return p.conns[next], nil
 	}
 
-	if cur == int32(p.opt.MaxActive) {
+	if cur == p.opt.MaxActive {
 		if p.opt.Reuse {
 			next := p.index.Add(1) % uint32(cur)
 			return p.conns[next], nil
 		}
 		c, err := p.opt.Dial(p.addr)
-		return p.wrapconn(c, true), err
+		return p.wrapConn(c, true), err
 	}
 
 	p.Lock()
 	cur = p.curr.Load()
-	if cur < int32(p.opt.MaxActive) && nextRef > cur*int32(p.opt.MaxConcurrentStreams) {
+	if cur < p.opt.MaxActive && nextRef > cur*p.opt.MaxConcurrentStreams {
 		inc := cur
-		if cur+inc > int32(p.opt.MaxActive) {
-			inc = int32(p.opt.MaxActive) - cur
+		if cur+inc > p.opt.MaxActive {
+			inc = p.opt.MaxActive - cur
 		}
 
-		var i int32
 		var err error
-		for i = 0; i < inc; i++ {
+		var i int
+		for i := range make([]struct{}, inc) {
 			c, er := p.opt.Dial(p.addr)
 			if er != nil {
 				err = er
 				break
 			}
-			p.reset(int(cur + i))
-			p.conns[cur+i] = p.wrapconn(c, false)
+			p.reset(cur + int32(i))
+			p.conns[cur+int32(i)] = p.wrapConn(c, false)
 		}
 
-		cur += i
+		cur += int32(i)
 		log.Printf("grow pool: %d ---> %d, increment: %d, maxActive: %d\n",
 			p.curr.Load(), cur, inc, p.opt.MaxActive)
 		p.curr.Store(cur)
@@ -141,20 +143,20 @@ func (p *pool) decRef() {
 		panic(fmt.Sprint("ref overflow to negative"))
 	}
 
-	if newRef == 0 && p.curr.Load() > int32(p.opt.MaxIdle) {
+	if newRef == 0 && p.curr.Load() > p.opt.MaxIdle {
 		p.Lock()
 		if p.ref.Load() == 0 {
 			log.Printf("shrink pool: %d ---> %d, decrement: %d, maxActive: %d\n",
-				p.curr.Load(), p.opt.MaxIdle, p.curr.Load()-int32(p.opt.MaxIdle), p.opt.MaxActive)
+				p.curr.Load(), p.opt.MaxIdle, p.curr.Load()-p.opt.MaxIdle, p.opt.MaxActive)
 
-			p.curr.Store(int32(p.opt.MaxIdle))
+			p.curr.Store(p.opt.MaxIdle)
 			p.delete(p.opt.MaxIdle)
 		}
 		p.Unlock()
 	}
 }
 
-func (p *pool) reset(idx int) {
+func (p *pool) reset(idx int32) {
 	conn := p.conns[idx]
 	if conn == nil {
 		return
@@ -166,13 +168,13 @@ func (p *pool) reset(idx int) {
 	p.conns[idx] = nil
 }
 
-func (p *pool) delete(begin int) {
+func (p *pool) delete(begin int32) {
 	for i := begin; i < p.opt.MaxActive; i++ {
 		p.reset(i)
 	}
 }
 
-func (p *pool) wrapconn(cc *grpc.ClientConn, once bool) *conn {
+func (p *pool) wrapConn(cc *grpc.ClientConn, once bool) *conn {
 	return &conn{cc: cc, pool: p, once: once}
 }
 
@@ -205,7 +207,7 @@ func (p *pool) reConnect() {
 			if err != nil {
 				log.Printf("error in reconnect pool conn[%d]: %v", i, err)
 			}
-			p.conns[i] = p.wrapconn(newConn, false)
+			p.conns[i] = p.wrapConn(newConn, false)
 			p.Unlock()
 		}
 	}

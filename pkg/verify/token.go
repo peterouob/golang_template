@@ -65,7 +65,7 @@ func (t *Token) CreateToken() {
 	t.AccessId = claims["access_id"].(string)
 }
 
-// CreateRefreshToken TODO:存Redis並實現black list使用
+// CreateRefreshToken TODO: 存Redis並實現black list使用
 func (t *Token) CreateRefreshToken() {
 	claims := jwt.MapClaims{
 		"refresh_id": t.Token.RefreshUuid,
@@ -76,13 +76,14 @@ func (t *Token) CreateRefreshToken() {
 		"iat":        time.Now().Unix(),
 	}
 	tk := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t.RefreshToken, err = tk.SignedString([]byte(fmt.Sprintf("%s%d", RefreshKey.Load().(string), t.UserId)))
+	t.RefreshToken = string(fmt.Appendf(tk.Signature, fmt.Sprintf("%s%d", RefreshKey.Load().(string), t.UserId)))
+
 	utils.HandelError("create refresh token error", err)
 	t.RefreshId = claims["refresh_id"].(string)
 }
 
-func VerifyToken(tokenString string) *jwt.Token {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func TokenVerify(tokenString string) *jwt.Token {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			utils.HandelError("parse token error type", err)
 		}

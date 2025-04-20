@@ -13,7 +13,7 @@ func TestSnowFlake(t *testing.T) {
 	s := NewIdWorker(100)
 	idSet := sync.Map{}
 
-	for i := 0; i < goroutineCount; i++ {
+	for range make([]struct{}, goroutineCount) {
 		go func() {
 			id := s.GenID()
 

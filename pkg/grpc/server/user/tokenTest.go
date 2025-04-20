@@ -16,6 +16,7 @@ func NewTokenTestServer() *TokenTestServer {
 	return &TokenTestServer{}
 }
 
+// TokenTest I think maybe this can abstract to middleware and be a service
 func (t TokenTestServer) TokenTest(ctx context.Context, in *protobuf.TokenTestRequest) (*protobuf.TokenTestResponse, error) {
 	userId, ok := ctx.Value("uid").(int64)
 	if !ok {
